@@ -1,0 +1,19 @@
+# backend/docker-compose.yml
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: hamachamber_db
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword123
+      POSTGRES_DB: hamachamber
+    ports:
+      - "5433:5432" # غيرنا المنفذ هنا لتجنب أي تضارب
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

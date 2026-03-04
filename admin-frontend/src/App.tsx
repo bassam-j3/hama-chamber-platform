@@ -3,6 +3,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
+// mail
+import Inbox from './pages/admin/Inbox';
+
 // Layouts
 import PublicLayout from './components/PublicLayout';
 import AdminLayout from './components/AdminLayout';
@@ -66,7 +69,6 @@ export default function App() {
           
           {/* ================= شاشات تسجيل الدخول والاستعادة ================= */}
           <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
-          {/* هنا أضفنا مسارات الاستعادة التي كانت تنقصك */}
           <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
           <Route path="/reset-password/:token" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
           
@@ -74,6 +76,9 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              
+              {/* البريد الوارد */}
+              <Route path="inbox" element={<Inbox />} />  
               
               {/* إدارة المستخدمين */}
               <Route path="users" element={<UsersManagement />} />

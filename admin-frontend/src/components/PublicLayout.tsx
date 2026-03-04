@@ -1,7 +1,7 @@
 // src/components/PublicLayout.tsx
 import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Container, Navbar, Nav, NavDropdown, Row, Col } from "react-bootstrap";
+import { Container, Navbar, Nav, Row, Col } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
 
 interface PageItem { id: string; title: string; slug: string; isActive: boolean; }

@@ -6,6 +6,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // mail
 import Inbox from './pages/admin/Inbox';
 
+import SecureQrView from './pages/SecureQrView'; 
+
 // Layouts
 import PublicLayout from './components/PublicLayout';
 import AdminLayout from './components/AdminLayout';
@@ -40,6 +42,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersManagement from './pages/admin/UsersManagement';
 import UserForm from './pages/admin/UserForm';
 
+// 👇 استيراد صفحة مولد الـ QR هنا
+import QrGenerator from './pages/admin/QrGenerator';
+
 // ================= مكونات الحماية الذكية (Guards) ================= //
 
 const ProtectedRoute = () => {
@@ -59,8 +64,13 @@ export default function App() {
     <Router>
       <AuthProvider>
         <Routes>
+          {/* ================= مسارات مستقلة (خارج التخطيطات) ================= */}
+          {/* مسار فك الـ QR Code السري للزوار (يفضل أن يكون بدون الهيدر العادي) */}
+
           {/* ================= الموقع العام (متاح للجميع) ================= */}
           <Route element={<PublicLayout />}>
+          <Route path="/qr/:token" element={<SecureQrView />} />
+
             <Route path="/" element={<PublicHome />} />
             <Route path="/page/:slug" element={<DynamicPage />} />
             <Route path="/jobs" element={<RedirectToJobs />} />
@@ -116,6 +126,9 @@ export default function App() {
               <Route path="pages" element={<PagesManagement />} />
               <Route path="pages/create" element={<PageForm />} />
               <Route path="pages/edit/:id" element={<PageForm />} />
+
+              {/* 👇 مسار صفحة مولد الـ QR داخل لوحة التحكم */}
+              <Route path="qr-generator" element={<QrGenerator />} />
             </Route>
           </Route>
 

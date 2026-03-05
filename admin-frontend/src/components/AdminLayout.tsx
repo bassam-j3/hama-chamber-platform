@@ -1,6 +1,7 @@
 // src/components/AdminLayout.tsx
 import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+// 👇 تم إضافة NavLink هنا لحل الخطأ
+import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 
 export default function AdminLayout() {
@@ -32,6 +33,7 @@ export default function AdminLayout() {
     if (path.includes('/faqs')) return 'الأسئلة الشائعة';
     if (path.includes('/pages')) return 'الصفحات الديناميكية';
     if (path.includes('/users')) return 'إدارة المدراء والصلاحيات'; 
+    if (path.includes('/qr-generator')) return 'مولد QR Code'; // 👈 أضفنا العنوان هنا لكي يظهر في الـ Header
     return 'لوحة التحكم'; 
   };
 
@@ -73,12 +75,11 @@ export default function AdminLayout() {
             <Link to="/admin/users" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/users') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
               <span className="material-symbols-outlined fs-5 transition-all">manage_accounts</span> إدارة المدراء
             </Link>
-            
           )}
 
           <div className="text-white-50 small fw-bold mt-3 mb-1 px-2" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>إدارة المحتوى</div>
           <Link to="/admin/inbox" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/inbox') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
-            <span className="material-symbols-outlined fs-5 transition-all">inbox</span> البريد الوارد
+            <span className="material-symbols-outlined fs-5 transition-all">inbox</span> البريد 
           </Link>
           <Link to="/admin/news" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/news') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
             <span className="material-symbols-outlined fs-5 transition-all">campaign</span> المقالات والأخبار
@@ -113,6 +114,20 @@ export default function AdminLayout() {
           <Link to="/admin/pages" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/pages') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
             <span className="material-symbols-outlined fs-5 transition-all">post_add</span> الصفحات الديناميكية
           </Link>
+          
+          {/* 👇 تم إصلاح خطأ الـ NavLink هنا بفضل الاستيراد في الأعلى */}
+          <NavLink
+            to="/admin/qr-generator"
+            className={({ isActive }) =>
+              `text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${
+                isActive ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'
+              }`
+            }
+          >
+            <span className="material-symbols-outlined fs-5 transition-all">qr_code_2</span>
+            مولد QR Code
+          </NavLink>
+
         </nav>
 
         <div className="p-4 flex-shrink-0 border-top border-white border-opacity-10 bg-dark bg-opacity-10">
@@ -140,12 +155,10 @@ export default function AdminLayout() {
         <header className="flex-shrink-0 bg-white border-bottom shadow-sm d-flex align-items-center justify-content-between px-3 px-md-4 z-1" style={{ height: '70px', borderColor: '#e8f3f1' }}>
           
           <div className="d-flex align-items-center gap-2 text-secondary small fw-medium">
-            {/* زر الموبايل مع تأثير التحويم */}
             <button className="btn btn-light d-lg-none p-1 d-flex align-items-center justify-content-center text-primary border-0 me-2 shadow-sm rounded-3 hover-bg-primary hover-text-white transition-all hover-translate-y" onClick={() => setShowSidebar(true)}>
               <span className="material-symbols-outlined fs-5">menu</span>
             </button>
 
-            {/* رابط الرئيسية مع تأثير التحويم الذهبي */}
             <Link to="/admin" className="text-decoration-none text-primary hover-text-gold transition-all d-none d-sm-flex align-items-center gap-1">
               <span className="material-symbols-outlined fs-6">home</span> الرئيسية
             </Link>
@@ -161,12 +174,10 @@ export default function AdminLayout() {
           <div className="d-flex align-items-center gap-2 gap-md-4">
             <div className="position-relative d-none d-md-block">
               <span className="material-symbols-outlined position-absolute top-50 translate-middle-y text-secondary fs-5" style={{ right: '12px' }}>search</span>
-              {/* حقل البحث مع تأثير التركيز (Focus) */}
               <input type="text" className="form-control border-0 rounded-pill text-sm ps-4 pe-5 py-2 shadow-none search-input-hover" placeholder="ابحث هنا..." style={{ width: '250px', backgroundColor: '#f0f5f4' }} />
             </div>
             
             <div className="d-flex align-items-center gap-2 border-end-md pe-md-3 me-md-1" style={{ borderColor: '#e8f3f1' }}>
-              {/* زر معاينة الموقع العام مع تأثير احترافي */}
               <Link to="/" className="btn btn-light rounded-circle p-2 text-secondary border-0 shadow-sm bg-light hover-bg-primary hover-text-white transition-all d-flex align-items-center justify-content-center hover-translate-y" title="عرض الموقع العام" target="_blank">
                 <span className="material-symbols-outlined fs-5">public</span>
               </Link>

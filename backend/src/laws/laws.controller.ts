@@ -25,7 +25,7 @@ export class LawsController {
       title: body.title,
       content: body.content,
       isActive: body.isActive !== 'false',
-      fileUrl: file ? `http://localhost:3000/uploads/${file.filename}` : undefined,
+      fileUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
     };
     return this.lawsService.create(dto);
   }
@@ -45,7 +45,7 @@ export class LawsController {
       isActive: body.isActive !== 'false',
     };
     if (file) {
-      dto.fileUrl = `http://localhost:3000/uploads/${file.filename}`;
+      dto.fileUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
     }
     return this.lawsService.update(id, dto);
   }

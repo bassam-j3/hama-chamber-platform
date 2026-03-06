@@ -21,7 +21,7 @@ export class NewsController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
   create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
-    const dto = { title: body.title, content: body.content, isActive: body.isActive !== 'false', imageUrl: file ? `http://localhost:3000/uploads/${file.filename}` : undefined };
+    const dto = { title: body.title, content: body.content, isActive: body.isActive !== 'false', imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined };
     return this.newsService.create(dto);
   }
 
@@ -32,7 +32,7 @@ export class NewsController {
   @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
   update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
     const dto: any = { title: body.title, content: body.content, isActive: body.isActive !== 'false' };
-    if (file) dto.imageUrl = `http://localhost:3000/uploads/${file.filename}`;
+    if (file) dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
     return this.newsService.update(id, dto);
   }
 

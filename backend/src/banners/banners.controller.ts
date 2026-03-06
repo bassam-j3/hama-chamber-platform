@@ -27,7 +27,7 @@ export class BannersController {
       link: body.link || null,
       isActive: body.isActive !== 'false', 
       // نأخذ مسار الصورة المرفوعة
-      imageUrl: file ? `http://localhost:3000/uploads/${file.filename}` : '' 
+      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : '' 
     };
     return this.bannersService.create(dto);
   }
@@ -49,7 +49,7 @@ export class BannersController {
     
     // إذا قام المدير بتغيير الصورة، نقوم بتحديث الرابط
     if (file) {
-      dto.imageUrl = `http://localhost:3000/uploads/${file.filename}`;
+      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
     }
     
     return this.bannersService.update(id, dto);

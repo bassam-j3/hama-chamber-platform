@@ -25,7 +25,7 @@ export class ProjectsController {
       title: body.title,
       content: body.content,
       isActive: body.isActive !== 'false', 
-      imageUrl: file ? `http://localhost:3000/uploads/${file.filename}` : undefined,
+      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
     };
     return this.projectsService.create(dto);
   }
@@ -45,7 +45,7 @@ export class ProjectsController {
       isActive: body.isActive !== 'false',
     };
     if (file) {
-      dto.imageUrl = `http://localhost:3000/uploads/${file.filename}`;
+      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
     }
     return this.projectsService.update(id, dto);
   }

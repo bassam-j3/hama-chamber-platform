@@ -131,13 +131,18 @@ export class EmailsService {
   async sendEmail(to: string, subject: string, html: string, attachments?: Array<Express.Multer.File>) {
     try {
       const transporter = nodemailer.createTransport({
-        host: this.config.get<string>('SMTP_HOST'),
-        port: Number(this.config.get('SMTP_PORT')),
-        secure: false,
-        auth: { user: this.config.get('SMTP_USER'), pass: this.config.get('SMTP_PASS') },
-        tls: { rejectUnauthorized: false },
+        host: process.env.SMTP_HOST,
+        port: Number(process.env.SMTP_PORT),
+        secure: process.env.SMTP_PORT === '465', // يكون false إذا كان البورت 587
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+        tls: {
+          // هذا السطر السحري يجبر السيرفر على الاتصال حتى لو كانت شهادة SCS غير عالمية
+          rejectUnauthorized: false 
+        }
       });
-
       const mailOptions: any = {
         from: `"غرفة تجارة حماة" <${this.config.get('SMTP_USER')}>`,
         to, subject, html,

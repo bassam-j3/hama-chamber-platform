@@ -27,7 +27,7 @@ export class BoardMembersController {
       roleTitle: body.roleTitle,
       isActive: body.isActive !== 'false', // FormData ترسل القيم المنطقية كنصوص
       // إذا تم رفع صورة، احفظ الرابط الكامل لها
-      imageUrl: file ? `http://localhost:3000/uploads/${file.filename}` : undefined,
+      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
     };
     return this.boardMembersService.create(dto);
   }
@@ -47,7 +47,7 @@ export class BoardMembersController {
       isActive: body.isActive !== 'false',
     };
     if (file) {
-      dto.imageUrl = `http://localhost:3000/uploads/${file.filename}`;
+      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
     }
     return this.boardMembersService.update(id, dto);
   }

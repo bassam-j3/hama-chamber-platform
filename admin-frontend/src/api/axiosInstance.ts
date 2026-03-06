@@ -4,7 +4,7 @@ import axios from 'axios';
 // إنشاء نسخة مخصصة من Axios
 const axiosInstance = axios.create({
   // Vite يستخدم import.meta.env لجلب المتغيرات
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hama-chamber-api.onrender.com/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },

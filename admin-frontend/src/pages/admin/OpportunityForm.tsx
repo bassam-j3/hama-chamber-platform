@@ -6,8 +6,8 @@ import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
 import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const oppSchema = z.object({
   title: z.string().min(3, "عنوان الفرصة التجارية مطلوب"),

@@ -26,7 +26,7 @@ export class CircularsController {
       content: body.content,
       category: body.category,
       isActive: body.isActive !== 'false',
-      imageUrl: file ? `http://localhost:3000/uploads/${file.filename}` : undefined,
+      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
     };
     return this.circularsService.create(dto);
   }
@@ -47,7 +47,7 @@ export class CircularsController {
       isActive: body.isActive !== 'false',
     };
     if (file) {
-      dto.imageUrl = `http://localhost:3000/uploads/${file.filename}`;
+      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
     }
     return this.circularsService.update(id, dto);
   }

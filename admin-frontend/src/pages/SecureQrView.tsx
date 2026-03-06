@@ -60,7 +60,7 @@ export default function SecureQrView() {
       {/* عرض صورة الغلاف إن وجدت */}
       {pageData.image && (
         <div className="page-hero-image mb-5 shadow-sm" style={{ height: '350px', width: '100%', overflow: 'hidden' }}>
-          <img src={`http://localhost:3000${pageData.image}`} alt={pageData.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={`https://hama-chamber-api.onrender.com${pageData.image}`} alt={pageData.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       )}
       

@@ -1,66 +1,62 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  // لا تكتب url هنا بعد الآن!
 }
 
 model BoardMember {
-  id          String   @id @default(uuid())
-  name        String
-  roleTitle   String
-  imageUrl    String?  // سيحفظ مسار الصورة في الخادم
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  roleTitle String
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text // @db.Text تسمح بتخزين نصوص طويلة جداً
-  imageUrl    String?  // صورة غلاف المشروع (اختياري)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Circular {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text
-  category    String   @default("عام") // تصنيف التعميم
-  imageUrl    String?  // صورة القرار الضوئية (اختياري)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String   @default("عام")
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Law {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text
-  fileUrl     String?  // رابط ملف القانون (صورة أو ملف)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  fileUrl   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model News {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text
-  imageUrl    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// جدول بصف واحد فقط لتخزين أسعار السوق التي ستدخلها يدوياً
 model MarketPrice {
   id          String   @id @default("global")
   dollarPrice String   @default("0")
@@ -68,67 +64,64 @@ model MarketPrice {
   updatedAt   DateTime @updatedAt
 }
 
-// جدول معارض ووفود
 model Exhibition {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text
-  imageUrl    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// جدول فرص تجارية
 model Opportunity {
-  id          String   @id @default(uuid())
-  title       String
-  content     String   @db.Text
-  imageUrl    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// جدول صور البانر (الواجهة الرئيسية)
 model Banner {
-  id          String   @id @default(uuid())
-  title       String
-  imageUrl    String
-  link        String?  // رابط اختياري عند الضغط على البانر
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  imageUrl  String
+  link      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-// جدول الأسئلة الشائعة (FAQ)
+
 model Faq {
-  id          String   @id @default(uuid())
-  question    String   // السؤال
-  answer      String   @db.Text // الإجابة
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  question  String
+  answer    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-// جدول الصفحات الديناميكية
+
 model Page {
-  id          String   @id @default(uuid())
-  title       String   // عنوان الصفحة (مثل: من نحن)
-  slug        String   @unique // الرابط الفريد (مثل: about-us)
-  content     String   @db.Text // محتوى الصفحة (HTML من المحرر)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  title     String
+  slug      String   @unique
+  content   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-// جدول مدراء النظام (Users/Admins)
+
 model User {
   id                   String    @id @default(uuid())
   name                 String
   email                String    @unique
   password             String
-  role                 String    @default("editor") // super_admin, admin, editor
-  isActive             Boolean   @default(true)     // هل الحساب مفعل أم موقوف؟
-  resetPasswordToken   String?   // توكن استعادة كلمة المرور
-  resetPasswordExpires DateTime? // وقت انتهاء صلاحية التوكن
+  role                 String    @default("editor")
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
+  isActive             Boolean   @default(true)
+  resetPasswordExpires DateTime?
+  resetPasswordToken   String?
 }

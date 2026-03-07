@@ -109,6 +109,7 @@ model Page {
   slug      String   @unique
   content   String
   isActive  Boolean  @default(true)
+  isSecure  Boolean  @default(false) // 👈 أضف هذا السطر فقط!
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

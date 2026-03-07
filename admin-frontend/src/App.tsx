@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // mail
 import Inbox from './pages/admin/Inbox';
 
-import SecureQrView from './pages/SecureQrView'; 
+// import SecureQrView from './pages/SecureQrView'; 
 
 // Layouts
 import PublicLayout from './components/PublicLayout';
@@ -71,7 +71,7 @@ export default function App() {
           {/* ================= الموقع العام (متاح للجميع) ================= */}
 {/* ================= الموقع العام (متاح للجميع) ================= */}
 <Route element={<PublicLayout />}>
-            <Route path="/qr/:token" element={<SecureQrView />} />
+            {/* <Route path="/qr/:token" element={<SecureQrView />} /> */}
 
             <Route path="/" element={<PublicHome />} />
             <Route path="/news" element={<PublicNews />} /> {/* 👈 أضف هذا السطر فقط */}

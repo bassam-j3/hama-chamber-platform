@@ -1,21 +1,21 @@
-// src/pages/admin/PageForm.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Container, Card, Form, Button, Alert, Spinner, InputGroup, Row, Col } from 'react-bootstrap'; // تمت إضافة Row و Col
+import { Container, Card, Form, Button, Alert, Spinner, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
-
-// ملاحظة: تأكد من مسار axiosInstance لديك
+import { QRCodeSVG } from 'qrcode.react'; 
 import axiosInstance from "../../api/axiosInstance";
 
+// 👈 أضفنا حقل isSecure لنحدد نوع الصفحة
 const pageSchema = z.object({
   title: z.string().min(3, "عنوان الصفحة مطلوب"),
-  slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية صغيرة وأرقام وشرطات (-) فقط"),
+  slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9\u0600-\u06FF\-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية أو عربية وأرقام وشرطات (-) فقط"),
   content: z.string().min(10, "محتوى الصفحة مطلوب"),
   isActive: z.boolean(),
+  isSecure: z.boolean(), // 👈 التعديل هنا: مسحنا .default(false)
 });
 
 type FormValues = z.infer<typeof pageSchema>;
@@ -24,16 +24,29 @@ export default function PageForm() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const qrRef = useRef<HTMLDivElement>(null);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", variant: "" });
+  
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [savedPageData, setSavedPageData] = useState<{slug: string, title: string} | null>(null);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormValues>({ 
-    resolver: zodResolver(pageSchema), defaultValues: { isActive: true, content: "" }
+    resolver: zodResolver(pageSchema), defaultValues: { isActive: true, isSecure: false, content: "" }
   });
   
   const editorContent = watch("content");
+  const titleValue = watch("title"); 
+
+  // ميزة الرابط التلقائي (Auto-Slug)
+  useEffect(() => {
+    if (!id && titleValue) {
+      const generatedSlug = titleValue.trim().replace(/[\s_]+/g, '-').replace(/[^\w\u0600-\u06FF\-]+/g, ''); 
+      setValue("slug", generatedSlug, { shouldValidate: true });
+    }
+  }, [titleValue, id, setValue]);
 
   useEffect(() => {
     if (id) {
@@ -43,11 +56,11 @@ export default function PageForm() {
       } else {
         setIsLoading(true);
         axiosInstance.get("/pages")
-          .then((res: any) => { // تم إصلاح الخطأ هنا
+          .then((res: any) => { 
             const item = res.data.find((p: any) => p.id === id);
             if (item) populateForm(item);
           })
-          .catch((err: any) => console.error(err)) // تم إصلاح الخطأ هنا
+          .catch((err: any) => console.error(err)) 
           .finally(() => setIsLoading(false));
       }
     }
@@ -58,6 +71,7 @@ export default function PageForm() {
     setValue("slug", data.slug);
     setValue("content", data.content);
     setValue("isActive", data.isActive);
+    setValue("isSecure", data.isSecure || false); // 👈 تعبئة حالة الأمان
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -70,7 +84,15 @@ export default function PageForm() {
         await axiosInstance.post("/pages", data);
         setMessage({ text: "تم نشر الصفحة بنجاح!", variant: "success" });
       }
-      setTimeout(() => { navigate('/admin/pages'); }, 2000);
+
+      // 👈 إذا كانت الصفحة محمية، اعرض الـ QR، وإلا عُد للقائمة فوراً
+      if (data.isSecure) {
+        setSavedPageData({ slug: data.slug, title: data.title });
+        setShowQrModal(true); 
+      } else {
+        setTimeout(() => { navigate('/admin/pages'); }, 1500);
+      }
+
     } catch (error: any) { 
       if(error.response?.data?.message?.includes('Unique constraint')) {
         setMessage({ text: "هذا الرابط (Slug) مستخدم لصفحة أخرى، يرجى تغييره.", variant: "danger" });
@@ -79,6 +101,30 @@ export default function PageForm() {
       }
     } finally { setIsSubmitting(false); }
   };
+
+  const handlePrintQR = () => {
+    const printContent = qrRef.current?.innerHTML;
+    const printWindow = window.open('', '_blank');
+    if (printWindow && printContent) {
+      printWindow.document.write(`
+        <html dir="rtl">
+          <head>
+            <title>طباعة QR Code - ${savedPageData?.title}</title>
+            <style>body { font-family: sans-serif; text-align: center; padding-top: 50px; } h1 { color: #0a4d44; margin-bottom: 20px; }</style>
+          </head>
+          <body>
+            <h1>${savedPageData?.title}</h1>
+            ${printContent}
+            <p style="margin-top: 20px; color: #666;">قم بمسح الرمز للوصول الآمن للصفحة</p>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+  };
+
+  const secureUrl = savedPageData ? `${window.location.origin}/page/${savedPageData.slug}?passcode=HAMA2026` : '';
 
   if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
 
@@ -100,8 +146,8 @@ export default function PageForm() {
             <Row>
               <Col md={6}>
                 <Form.Group className="mb-4">
-                  <Form.Label className="fw-bold text-dark">عنوان الصفحة (يظهر للزوار)</Form.Label>
-                  <Form.Control type="text" placeholder="مثال: من نحن، رؤيتنا، اتصل بنا..." isInvalid={!!errors.title} {...register("title")} className="py-2 fw-bold" />
+                  <Form.Label className="fw-bold text-dark">عنوان الصفحة</Form.Label>
+                  <Form.Control type="text" placeholder="مثال: عن الغرفة..." isInvalid={!!errors.title} {...register("title")} className="py-2 fw-bold" />
                   <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -110,10 +156,9 @@ export default function PageForm() {
                   <Form.Label className="fw-bold text-dark">الرابط المخصص (Slug)</Form.Label>
                   <InputGroup hasValidation dir="ltr">
                     <InputGroup.Text id="basic-addon1">/page/</InputGroup.Text>
-                    <Form.Control type="text" placeholder="about-us" isInvalid={!!errors.slug} {...register("slug")} className="py-2" aria-describedby="basic-addon1" />
+                    <Form.Control type="text" isInvalid={!!errors.slug} {...register("slug")} className="py-2 fw-bold text-primary" />
                     <Form.Control.Feedback type="invalid">{errors.slug?.message}</Form.Control.Feedback>
                   </InputGroup>
-                  <Form.Text className="text-muted small text-end d-block mt-1">يجب أن يكون باللغة الإنجليزية وبدون مسافات (استخدم - بدلاً من المسافة).</Form.Text>
                 </Form.Group>
               </Col>
             </Row>
@@ -124,20 +169,54 @@ export default function PageForm() {
                 {/* @ts-ignore */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '400px' }} />
               </div>
-              {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
             </Form.Group>
 
-            <Form.Group className="mb-5 pt-4 border-top">
-              <Form.Label className="fw-bold text-dark">حالة النشر</Form.Label>
-              <Form.Check type="switch" label="نشر الصفحة (متاحة للزوار)" {...register("isActive")} className="fw-bold text-primary fs-5" />
-            </Form.Group>
+            {/* 👇 قسم الإعدادات (نشر + حماية) */}
+            <Row className="mb-5 pt-4 border-top">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-bold text-dark">حالة الظهور</Form.Label>
+                  <Form.Check type="switch" label="نشر الصفحة (متاحة)" {...register("isActive")} className="fw-bold text-success fs-5" />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-bold text-dark">مستوى الأمان</Form.Label>
+                  <Form.Check type="switch" label="صفحة محمية (تتطلب QR Code)" {...register("isSecure")} className="fw-bold text-danger fs-5" />
+                  <Form.Text className="text-muted small">إذا قمت بتفعيل هذا الخيار، لن تفتح الصفحة إلا بمسح الـ QR.</Form.Text>
+                </Form.Group>
+              </Col>
+            </Row>
 
             <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
-              {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات' : 'نشر الصفحة'}</> )}
+              {isSubmitting ? <><Spinner size="sm" animation="border" /> جاري الحفظ...</> : <><span className="material-symbols-outlined">save</span> حفظ الصفحة</>}
             </Button>
           </Form>
         </Card.Body>
       </Card>
+
+      {/* نافذة الـ QR Code */}
+      <Modal show={showQrModal} onHide={() => { setShowQrModal(false); navigate('/admin/pages'); }} centered backdrop="static">
+        <Modal.Header className="border-0 bg-primary text-white d-flex justify-content-between align-items-center">
+          <Modal.Title className="fw-bold d-flex align-items-center gap-2">
+            <span className="material-symbols-outlined">qr_code_scanner</span> الصفحة محمية وجاهزة!
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center py-5">
+          <h5 className="fw-bold text-dark mb-4">{savedPageData?.title}</h5>
+          <div ref={qrRef} className="d-inline-block p-3 bg-white border rounded-4 shadow-sm mb-4">
+             <QRCodeSVG value={secureUrl} size={200} level="H" includeMargin={true} />
+          </div>
+          <p className="text-muted small px-4">تم تشفير الرابط. اطبع هذا الرمز لتمكين الزوار من الدخول.</p>
+        </Modal.Body>
+        <Modal.Footer className="border-0 bg-light d-flex justify-content-between">
+          <Button variant="outline-secondary" className="fw-bold px-4" onClick={() => navigate('/admin/pages')}>إغلاق</Button>
+          <Button variant="primary" className="fw-bold px-4 d-flex align-items-center gap-2" onClick={handlePrintQR}>
+            <span className="material-symbols-outlined">print</span> طباعة الرمز
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </Container>
   );
 }

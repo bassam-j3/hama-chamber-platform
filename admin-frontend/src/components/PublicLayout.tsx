@@ -14,7 +14,7 @@ export default function PublicLayout() {
   const [marketPrices, setMarketPrices] = useState<MarketPrice>({ dollarPrice: "0", gold21Price: "0" });
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
   
-  // حالة جديدة لتتبع القسم النشط أثناء التمرير
+  // حالة لتتبع القسم النشط أثناء التمرير
   const [activeSection, setActiveSection] = useState<string>('home');
 
   // جلب البيانات الأساسية للـ Layout
@@ -49,7 +49,9 @@ export default function PublicLayout() {
     fetchLayoutData();
   }, []);
 
-  // مراقب التمرير (ScrollSpy Logic)
+  // ==========================================
+  // ربط الـ Scroll Spy لتتطابق مع PublicHome
+  // ==========================================
   useEffect(() => {
     const handleScroll = () => {
       if (location.pathname !== '/') {
@@ -57,7 +59,8 @@ export default function PublicLayout() {
         return;
       }
 
-      const sections = ['news-section', 'laws-section', 'projects', 'board-members', 'services-section', 'faqs-section', 'contact-section'];
+      // 👈 هذه المصفوفة مطابقة تماماً للـ div id الموجودة في PublicHome
+      const sections = ['about', 'news-section', 'projects', 'laws-section', 'board-members', 'faqs-section', 'contact-section'];
       let current = 'home';
 
       if (window.scrollY < 150) {
@@ -65,18 +68,23 @@ export default function PublicLayout() {
         return;
       }
 
+      // نستخدم offsetTop لضمان التقاط الأقسام القصيرة
+      const scrollPosition = window.scrollY + 250; 
+
       for (const sectionId of sections) {
         const element = document.getElementById(sectionId);
         if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 200 && rect.bottom >= 200) {
+          const offsetTop = element.offsetTop;
+          const offsetBottom = offsetTop + element.offsetHeight;
+
+          if (scrollPosition >= offsetTop && scrollPosition < offsetBottom) {
             current = sectionId;
-            break;
           }
         }
       }
 
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 50) {
+      // لضمان التقاط آخر قسم (تواصل معنا) في حال الوصول لنهاية الصفحة
+      if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 50) {
         current = 'contact-section';
       }
 
@@ -156,28 +164,28 @@ export default function PublicLayout() {
               <Nav className="mx-auto gap-2 gap-xxl-4 fw-bold align-items-xl-center mt-3 mt-xl-0" style={{ fontSize: '0.95rem' }}>
                 <Nav.Link as={Link} to="/" className={`nav-link-interactive ${activeSection === 'home' && location.pathname === '/' ? 'active-section' : ''}`}>الرئيسية</Nav.Link>
                 
-                <Nav.Link href="/#board-members" className={`nav-link-interactive ${activeSection === 'board-members' ? 'active-section' : ''}`}>أعضاء المجلس</Nav.Link>
-                <Nav.Link href="/#faqs-section" className={`nav-link-interactive ${activeSection === 'faqs-section' ? 'active-section' : ''}`}>الأسئلة الشائعة</Nav.Link>
+                <Nav.Link href="/#about" className={`nav-link-interactive ${activeSection === 'about' ? 'active-section' : ''}`}>عن الغرفة</Nav.Link>
                 
+                {/* 👈 الروابط المطابقة تماماً لـ PublicHome */}
+              
+                <Nav.Link href="/#news-section" className={`nav-link-interactive ${activeSection === 'news-section' ? 'active-section' : ''}`}>المركز الإعلامي</Nav.Link>
+                <Nav.Link href="/#projects" className={`nav-link-interactive ${activeSection === 'projects' ? 'active-section' : ''}`}>المشاريع</Nav.Link>
+                <Nav.Link href="/#laws-section" className={`nav-link-interactive ${activeSection === 'laws-section' ? 'active-section' : ''}`}>القرارات</Nav.Link>
+
+                <Nav.Link href="/#board-members" className={`nav-link-interactive ${activeSection === 'board-members' ? 'active-section' : ''}`}>أعضاء المجلس</Nav.Link>
+
+                <Nav.Link href="/#faqs-section" className={`nav-link-interactive ${activeSection === 'faqs-section' ? 'active-section' : ''}`}>الأسئلة الشائعة</Nav.Link>
+
                 {pagesList.map((page) => (
                   <Nav.Link as={Link} to={`/page/${page.slug}`} key={page.id} className={`nav-link-interactive ${location.pathname === `/page/${page.slug}` ? 'active-section' : ''}`}>
                     {page.title}
                   </Nav.Link>
                 ))}
 
-                <Nav.Link href="/#news-section" className={`nav-link-interactive ${activeSection === 'news-section' ? 'active-section' : ''}`}>المركز الإعلامي</Nav.Link>
-                <Nav.Link href="/#laws-section" className={`nav-link-interactive ${activeSection === 'laws-section' ? 'active-section' : ''}`}>القرارات</Nav.Link>
-                <Nav.Link href="/#projects" className={`nav-link-interactive ${activeSection === 'projects' ? 'active-section' : ''}`}>المشاريع</Nav.Link>
-                <Nav.Link href="/#services-section" className={`nav-link-interactive ${activeSection === 'services-section' ? 'active-section' : ''}`}>الخدمات</Nav.Link>
                 <Nav.Link as={Link} to="/jobs" className={`nav-link-interactive ${location.pathname === '/jobs' ? 'active-section' : ''}`}>فرص العمل</Nav.Link>
                 <Nav.Link href="/#contact-section" className={`nav-link-interactive ${activeSection === 'contact-section' ? 'active-section' : ''}`}>اتصل بنا</Nav.Link>
               </Nav>
 
-              <div className="d-flex align-items-center ms-xl-3 mt-3 mt-xl-0 border-start-xl border-light ps-xl-3">
-                <button className="btn btn-light rounded-circle p-2 d-flex align-items-center justify-content-center text-secondary border-0 bg-transparent hover-bg-light transition-all">
-                  <span className="material-symbols-outlined">search</span>
-                </button>
-              </div>
             </Navbar.Collapse>
           </Navbar>
         </Container>
@@ -217,7 +225,7 @@ export default function PublicLayout() {
               <h3 className="h5 footer-heading">روابط سريعة</h3>
               <ul className="list-unstyled space-y-3 text-white-50 mt-4">
                 <li className="mb-3"><Link to="/jobs" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>فرص العمل</Link></li>
-                <li className="mb-3"><a href="/#services-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>الخدمات الإلكترونية</a></li>
+                <li className="mb-3"><a href="/#about" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>عن الغرفة</a></li>
                 <li className="mb-3"><a href="#" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>سجل المنتسبين</a></li>
                 <li className="mb-3"><a href="/#news-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>المركز الإعلامي</a></li>
               </ul>

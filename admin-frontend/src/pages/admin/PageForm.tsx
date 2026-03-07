@@ -5,8 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Container, Card, Form, Button, Alert, Spinner, InputGroup, Row, Col } from 'react-bootstrap'; // تمت إضافة Row و Col
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 // ملاحظة: تأكد من مسار axiosInstance لديك
 import axiosInstance from "../../api/axiosInstance";

@@ -41,7 +41,7 @@ import PageForm from './pages/admin/PageForm';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersManagement from './pages/admin/UsersManagement';
 import UserForm from './pages/admin/UserForm';
-
+import PublicNews from './pages/PublicNews';
 // 👇 استيراد صفحة مولد الـ QR هنا
 import QrGenerator from './pages/admin/QrGenerator';
 
@@ -68,10 +68,13 @@ export default function App() {
           {/* مسار فك الـ QR Code السري للزوار (يفضل أن يكون بدون الهيدر العادي) */}
 
           {/* ================= الموقع العام (متاح للجميع) ================= */}
-          <Route element={<PublicLayout />}>
-          <Route path="/qr/:token" element={<SecureQrView />} />
+          {/* ================= الموقع العام (متاح للجميع) ================= */}
+{/* ================= الموقع العام (متاح للجميع) ================= */}
+<Route element={<PublicLayout />}>
+            <Route path="/qr/:token" element={<SecureQrView />} />
 
             <Route path="/" element={<PublicHome />} />
+            <Route path="/news" element={<PublicNews />} /> {/* 👈 أضف هذا السطر فقط */}
             <Route path="/page/:slug" element={<DynamicPage />} />
             <Route path="/jobs" element={<RedirectToJobs />} />
             <Route path="/job-applications" element={<RedirectToJobs />} />

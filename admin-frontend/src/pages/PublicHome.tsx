@@ -1,11 +1,11 @@
-// src/pages/PublicHome.tsx
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom"; // <-- أضفنا هذا الاستيراد
+import { useLocation } from "react-router-dom";
 import { Spinner } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
 import type { BoardMember, Project, Law, Circular, News, Banner, Faq } from "../types/public";
 import {
   HeroBannerSection,
+  AboutSection, 
   NewsSection,
   LawsCircularsSection,
   ProjectsSection,
@@ -17,7 +17,7 @@ import NewsModal from "./home/NewsModal";
 import ProjectModal from "./home/ProjectModal";
 
 export default function PublicHome() {
-  const location = useLocation(); // <-- تهيئة لمعرفة الرابط الحالي
+  const location = useLocation();
   const [members, setMembers] = useState<BoardMember[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [laws, setLaws] = useState<Law[]>([]);
@@ -25,11 +25,11 @@ export default function PublicHome() {
   const [news, setNews] = useState<News[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
 
-  // جلب البيانات
   useEffect(() => {
     const fetchPublicData = async () => {
       setIsLoading(true);
@@ -60,26 +60,22 @@ export default function PublicHome() {
     fetchPublicData();
   }, []);
 
-  // ==========================================
-  // الكود السحري لحل مشكلة التنقل الدقيق (Scroll to Hash)
-  // ==========================================
   useEffect(() => {
-    // ننتظر قليلاً حتى تختفي شاشة التحميل (Spinner) وتظهر الأقسام
     if (!isLoading) {
       if (location.hash) {
         const elementId = location.hash.replace('#', '');
         const element = document.getElementById(elementId);
-        
         if (element) {
           setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth' });
+            const y = element.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top: y, behavior: 'smooth' });
           }, 150);
         }
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
-  }, [location, isLoading]); // ربطناه بـ isLoading ليعمل بعد اكتمال جلب البيانات
+  }, [location, isLoading]);
 
   if (isLoading) {
     return (
@@ -94,30 +90,13 @@ export default function PublicHome() {
     <>
       <HeroBannerSection banners={banners} />
       
-      {/* تم تغليف كل قسم بـ id ليتعرف عليه الـ Navbar */}
-      <section id="news-section">
-        <NewsSection news={news} onSelectNews={setSelectedNews} />
-      </section>
-
-      <section id="laws-section">
-        <LawsCircularsSection laws={laws} circulars={circulars} />
-      </section>
-
-      <section id="projects">
-        <ProjectsSection projects={projects} onSelectProject={setSelectedProject} />
-      </section>
-
-      <section id="board-members">
-        <BoardMembersSection members={members} />
-      </section>
-
-      <section id="faqs-section">
-        <FaqSection faqs={faqs} />
-      </section>
-
-      <section id="contact-section">
-        <ContactSection />
-      </section>
+      <div id="about"><AboutSection /></div>
+      <div id="news-section"><NewsSection news={news} onSelectNews={setSelectedNews} /></div>
+      <div id="projects"><ProjectsSection projects={projects} onSelectProject={setSelectedProject} /></div>
+      <div id="laws-section"><LawsCircularsSection laws={laws} circulars={circulars} /></div>
+      <div id="board-members"><BoardMembersSection members={members} /></div>
+      <div id="faqs-section"><FaqSection faqs={faqs} /></div>
+      <div id="contact-section"><ContactSection /></div>
 
       <NewsModal news={selectedNews} onClose={() => setSelectedNews(null)} />
       <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />

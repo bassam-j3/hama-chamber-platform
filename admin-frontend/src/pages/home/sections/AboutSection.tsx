@@ -1,4 +1,5 @@
 import { Container, Row, Col } from "react-bootstrap";
+import logoImg from '../../../../hamachamberlogo.svg';
 
 export default function AboutSection() {
   return (
@@ -19,8 +20,13 @@ export default function AboutSection() {
             </p>
           </Col>
           <Col lg={4} className="d-none d-lg-flex justify-content-center">
-            <div className="p-4 bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center border border-light transition-all hover-scale" style={{ width: '250px', height: '250px' }}>
-              <span className="material-symbols-outlined text-gold" style={{ fontSize: '100px' }}>account_balance</span>
+          <div className="p-4 bg-white rounded-circle shadow-sm d-flex align-items-center justify-content-center border border-light transition-all hover-scale overflow-hidden" style={{ width: '250px', height: '250px' }}>
+              {/* 👈 قمنا بوضع الشعار هنا بدلاً من الأيقونة */}
+              <img 
+                src="/hamachamberlogo.svg" 
+                alt="شعار غرفة تجارة حماة" 
+                style={{ width: '80%', height: '80%', objectFit: 'contain' }} 
+              />
             </div>
           </Col>
         </Row>

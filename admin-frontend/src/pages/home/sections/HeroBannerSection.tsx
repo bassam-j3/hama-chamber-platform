@@ -1,6 +1,8 @@
 // src/pages/home/sections/HeroBannerSection.tsx
 import { Carousel, Container, Row, Col } from "react-bootstrap";
 import type { Banner } from "../../../types/public";
+import logoImg from '../../../../hamachamberlogo.svg';
+
 
 interface HeroBannerSectionProps {
   banners: Banner[];
@@ -72,8 +74,13 @@ export default function HeroBannerSection({ banners }: HeroBannerSectionProps) {
         // حالة عدم وجود بانرات
         <div style={{ height: "60vh", minHeight: "400px" }} className="w-100 d-flex align-items-center justify-content-center text-white text-center bg-primary">
           <div className="glass-panel p-5 rounded-4 border border-white border-opacity-10">
-            <span className="material-symbols-outlined display-1 text-gold mb-3">account_balance</span>
-            <h2 className="display-4 fw-bold">غرفة تجارة حماة</h2>
+          <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner overflow-hidden" style={{ width: '48px', height: '48px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
+                <img 
+                  src={logoImg} 
+                  alt="شعار غرفة تجارة حماة" 
+                  style={{ width: '85%', height: '85%', objectFit: 'contain' }} 
+                />
+              </div>            <h2 className="display-4 fw-bold">غرفة تجارة حماة</h2>
           </div>
         </div>
       )}

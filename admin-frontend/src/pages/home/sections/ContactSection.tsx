@@ -15,7 +15,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <p className="text-gold small fw-bold mb-1 tracking-widest text-uppercase">العنوان الرئيسي</p>
-                  <p className="fs-5 fw-bold mb-0">حماة، شارع أبي الفداء، ساحة العاصي</p>
+                  <p className="fs-5 fw-bold mb-0">حماة  ساحة العاصي</p>
                 </div>
               </div>
               <div className="d-flex align-items-start gap-4">
@@ -24,7 +24,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <p className="text-gold small fw-bold mb-1 tracking-widest text-uppercase">مركز الاتصال</p>
-                  <p className="fs-4 fw-bold mb-0 font-monospace" dir="ltr">+963 33 1234567</p>
+                  <p className="fs-4 fw-bold mb-0 font-monospace" dir="ltr">00963332517700</p>
                 </div>
               </div>
             </div>

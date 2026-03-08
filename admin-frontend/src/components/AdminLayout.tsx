@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 // 👇 تم إضافة NavLink هنا لحل الخطأ
 import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
+import logoImg from '../../hamachamberlogo.svg';
+
 
 export default function AdminLayout() {
   const location = useLocation();
@@ -53,9 +55,13 @@ export default function AdminLayout() {
         
         <div className="p-4 flex-shrink-0 d-flex align-items-center justify-content-between gap-3">
           <div className="d-flex align-items-center gap-3 overflow-hidden">
-            <div className="bg-white rounded-circle p-1 shadow-sm d-flex align-items-center justify-content-center text-primary flex-shrink-0 transition-all hover-scale" style={{ width: '42px', height: '42px' }}>
-               <span className="material-symbols-outlined fs-4">account_balance</span>
-            </div>
+          <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner overflow-hidden" style={{ width: '48px', height: '48px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
+                <img 
+                  src={logoImg} 
+                  alt="شعار غرفة تجارة حماة" 
+                  style={{ width: '85%', height: '85%', objectFit: 'contain' }} 
+                />
+              </div>
             <div className="d-flex flex-column text-truncate">
               <h1 className="text-white fw-bold mb-0 lh-1 text-truncate" style={{ fontSize: '1.1rem' }}>غرفة تجارة حماة</h1>
               <p className="text-white-50 mb-0 mt-1 fw-normal text-truncate" style={{ fontSize: '0.75rem' }}>بوابة الإدارة المركزية</p>

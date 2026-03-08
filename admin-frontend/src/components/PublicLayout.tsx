@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Container, Navbar, Nav, Row, Col } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
+import logoImg from '../../hamachamberlogo.svg';
 
 interface PageItem { id: string; title: string; slug: string; isActive: boolean; }
 interface MarketPrice { dollarPrice: string; gold21Price: string; }
@@ -148,9 +149,14 @@ export default function PublicLayout() {
         <Container fluid="xl" className="px-4">
           <Navbar expand="xl" className="py-3 p-0" style={{ minHeight: '80px' }}>
             
-            <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-3 m-0">
-              <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center text-gold shadow-inner" style={{ width: '48px', height: '48px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
-                <span className="material-symbols-outlined fs-2">account_balance</span>
+          <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-3 m-0">
+              {/* 👈 قمنا بإزالة span الخاص بالأيقونات ووضعنا img */}
+              <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner overflow-hidden" style={{ width: '48px', height: '48px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
+                <img 
+                  src={logoImg} 
+                  alt="شعار غرفة تجارة حماة" 
+                  style={{ width: '85%', height: '85%', objectFit: 'contain' }} 
+                />
               </div>
               <div>
                 <h1 className="h5 fw-bold text-primary mb-0 lh-1">غرفة تجارة حماة</h1>
@@ -202,9 +208,13 @@ export default function PublicLayout() {
           <Row className="gy-5 mb-5">
             <Col lg={4}>
               <div className="d-flex align-items-center gap-3 mb-4">
-                <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center text-gold shadow-sm border border-white border-opacity-10" style={{ width: '48px', height: '48px' }}>
-                  <span className="material-symbols-outlined fs-5">account_balance</span>
-                </div>
+              <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner overflow-hidden" style={{ width: '48px', height: '48px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
+                <img 
+                  src={logoImg} 
+                  alt="شعار غرفة تجارة حماة" 
+                  style={{ width: '85%', height: '85%', objectFit: 'contain' }} 
+                />
+              </div>
                 <h2 className="h4 fw-bold mb-0">غرفة تجارة حماة</h2>
               </div>
               <p className="text-white-50 lh-lg pe-lg-4">تأسست لتكون ركيزة الاقتصاد في محافظة حماة، ملتزمون بدعم التاجر السوري وتعزيز بيئة الأعمال عبر خدماتنا المبتكرة.</p>

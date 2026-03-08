@@ -65,7 +65,7 @@ section[id], div[id] {
   width: 100%; overflow: hidden; background-color: #052d28; color: white;
   border-bottom: 1px solid rgba(185, 167, 121, 0.4); direction: ltr;
 }
-.ticker-move { display: inline-block; white-space: nowrap; padding-right: 100%; animation: ticker-scroll 15s linear infinite; }
+.ticker-move { display: inline-block; white-space: nowrap; padding-right: 100%; animation: ticker-scroll 50s linear infinite; }
 .ticker-move:hover { animation-play-state: paused; cursor: default; }
 .ticker-item { display: inline-block; padding: 0 2rem; direction: rtl; }
 @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }

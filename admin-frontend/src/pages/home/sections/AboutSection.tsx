@@ -1,5 +1,4 @@
 import { Container, Row, Col } from "react-bootstrap";
-import logoImg from '../../../../hamachamberlogo.svg';
 
 export default function AboutSection() {
   return (

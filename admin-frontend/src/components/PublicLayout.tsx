@@ -5,7 +5,13 @@ import { Container, Navbar, Nav, Row, Col } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
 import logoImg from '../../hamachamberlogo.svg';
 
-interface PageItem { id: string; title: string; slug: string; isActive: boolean; }
+interface PageItem { 
+  id: string; 
+  title: string; 
+  slug: string; 
+  isActive: boolean; 
+  isSecure: boolean; // 👈 أضف هذا السطر
+}
 interface MarketPrice { dollarPrice: string; gold21Price: string; }
 interface NewsItem { id: string; title: string; createdAt: string; isActive: boolean; }
 
@@ -28,7 +34,8 @@ export default function PublicLayout() {
           axiosInstance.get("/news").catch(() => ({ data: [] }))
         ]);
         
-        setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive));
+// 👈 الآن نجلب فقط الصفحات المنشورة (isActive) والغير محمية (!isSecure)
+setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
         if (pricesRes.data) setMarketPrices(pricesRes.data);
 
         // معالجة الأخبار: جلب الأخبار النشطة فقط
@@ -189,6 +196,16 @@ export default function PublicLayout() {
                 ))}
 
                 <Nav.Link as={Link} to="/jobs" className={`nav-link-interactive ${location.pathname === '/jobs' ? 'active-section' : ''}`}>فرص العمل</Nav.Link>
+
+{/* 👇 الرابط الخارجي الجديد لمنصة الدليل التجاري */}
+<Nav.Link 
+  href="https://hamatrade.sy/" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="nav-link-interactive d-flex align-items-center gap-1"
+>
+  منصة الدليل التجاري والصناعي
+  </Nav.Link>
                 <Nav.Link href="/#contact-section" className={`nav-link-interactive ${activeSection === 'contact-section' ? 'active-section' : ''}`}>اتصل بنا</Nav.Link>
               </Nav>
 
@@ -217,7 +234,6 @@ export default function PublicLayout() {
               </div>
                 <h2 className="h4 fw-bold mb-0">غرفة تجارة حماة</h2>
               </div>
-              <p className="text-white-50 lh-lg pe-lg-4">تأسست لتكون ركيزة الاقتصاد في محافظة حماة، ملتزمون بدعم التاجر السوري وتعزيز بيئة الأعمال عبر خدماتنا المبتكرة.</p>
               <div className="d-flex gap-3 mt-4">
                 <a href="#" className="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center text-white text-decoration-none hover-bg-primary hover-text-gold transition-all border border-white border-opacity-10" style={{ width: '44px', height: '44px' }}>
                   <span className="material-symbols-outlined fs-5">facebook</span>

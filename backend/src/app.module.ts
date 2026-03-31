@@ -6,10 +6,11 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
-import { MailModule } from './mail/mail.module'; // 👈 استيراد موديول إرسال البريد
-
-// 👇 1. الاستيراد الجديد الخاص بموديول قراءة الإيميلات
+import { MailModule } from './mail/mail.module'; 
 import { EmailsModule } from './emails/emails.module'; 
+
+// 👇 1. استيراد موديول Cloudinary الجديد
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 import { BoardMembersModule } from './board-members/board-members.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -34,10 +35,11 @@ import { UsersModule } from './users/users.module';
       serveRoot: '/uploads',
     }),
     PrismaModule,
-    MailModule, // تفعيل الإيميل هنا ليعمل في كل النظام
-    
-    // 👇 2. تسجيل موديول الإيميلات هنا ليتعرف الباكند على الرابط
+    MailModule, 
     EmailsModule, 
+    
+    // 👇 2. تفعيل موديول Cloudinary هنا ليعمل في كل النظام
+    CloudinaryModule,
 
     BoardMembersModule,
     ProjectsModule,

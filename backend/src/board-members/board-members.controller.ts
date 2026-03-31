@@ -1,33 +1,33 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { BoardMembersService } from './board-members.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // استيراد الحارس
-
-// إعدادات حفظ الملفات
-const storageOptions = diskStorage({
-  destination: './uploads', // المجلد الذي أنشأناه
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${uniqueSuffix}${extname(file.originalname)}`); // توليد اسم فريد
-  }
-});
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('api/v1/board-members')
 export class BoardMembersController {
-  constructor(private readonly boardMembersService: BoardMembersService) {}
+  constructor(
+    private readonly boardMembersService: BoardMembersService,
+    private readonly cloudinaryService: CloudinaryService
+  ) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard) // قفل الحماية
-  @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
-  create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  @UseGuards(JwtAuthGuard) 
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
+    let imageUrl = undefined;
+
+    if (file) {
+      const uploadResult = await this.cloudinaryService.uploadImage(file, 'board-members');
+      imageUrl = uploadResult.secure_url;
+    }
+
     const dto = {
       name: body.name,
       roleTitle: body.roleTitle,
-      isActive: body.isActive !== 'false', // FormData ترسل القيم المنطقية كنصوص
-      // إذا تم رفع صورة، احفظ الرابط الكامل لها
-      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
+      isActive: body.isActive !== 'false', 
+      imageUrl: imageUrl,
     };
     return this.boardMembersService.create(dto);
   }
@@ -38,22 +38,25 @@ export class BoardMembersController {
   }
 
   @Put(':id')
-  @UseGuards(JwtAuthGuard) // قفل الحماية
-  @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
-  update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  @UseGuards(JwtAuthGuard) 
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
     const dto: any = {
       name: body.name,
       roleTitle: body.roleTitle,
       isActive: body.isActive !== 'false',
     };
+    
     if (file) {
-      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
+      const uploadResult = await this.cloudinaryService.uploadImage(file, 'board-members');
+      dto.imageUrl = uploadResult.secure_url;
     }
+    
     return this.boardMembersService.update(id, dto);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard) // قفل الحماية
+  @UseGuards(JwtAuthGuard) 
   remove(@Param('id') id: string) {
     return this.boardMembersService.remove(id);
   }

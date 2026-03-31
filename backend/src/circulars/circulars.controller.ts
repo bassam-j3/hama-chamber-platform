@@ -1,32 +1,34 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { CircularsService } from './circulars.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
-const storageOptions = diskStorage({
-  destination: './uploads',
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-  }
-});
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('api/v1/circulars')
 export class CircularsController {
-  constructor(private readonly circularsService: CircularsService) {}
+  constructor(
+    private readonly circularsService: CircularsService,
+    private readonly cloudinaryService: CloudinaryService
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
-  create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
+    let imageUrl = undefined;
+    
+    if (file) {
+      const uploadResult = await this.cloudinaryService.uploadImage(file, 'circulars');
+      imageUrl = uploadResult.secure_url;
+    }
+
     const dto = {
       title: body.title,
       content: body.content,
       category: body.category,
       isActive: body.isActive !== 'false',
-      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
+      imageUrl: imageUrl,
     };
     return this.circularsService.create(dto);
   }
@@ -38,17 +40,20 @@ export class CircularsController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
-  update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
     const dto: any = {
       title: body.title,
       content: body.content,
       category: body.category,
       isActive: body.isActive !== 'false',
     };
+    
     if (file) {
-      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
+      const uploadResult = await this.cloudinaryService.uploadImage(file, 'circulars');
+      dto.imageUrl = uploadResult.secure_url;
     }
+    
     return this.circularsService.update(id, dto);
   }
 

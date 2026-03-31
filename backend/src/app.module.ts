@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module'; 
 import { EmailsModule } from './emails/emails.module'; 
-
-// 👇 1. استيراد موديول Cloudinary الجديد
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 import { BoardMembersModule } from './board-members/board-members.module';
@@ -30,17 +26,11 @@ import { UsersModule } from './users/users.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'),
-      serveRoot: '/uploads',
-    }),
+    // تم حذف ServeStaticModule نهائياً من هنا 🚀
     PrismaModule,
     MailModule, 
     EmailsModule, 
-    
-    // 👇 2. تفعيل موديول Cloudinary هنا ليعمل في كل النظام
     CloudinaryModule,
-
     BoardMembersModule,
     ProjectsModule,
     CircularsModule,

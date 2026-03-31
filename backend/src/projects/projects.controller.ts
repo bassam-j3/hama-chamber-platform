@@ -1,58 +1,65 @@
 import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { ProjectsService } from './projects.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-
-const storageOptions = diskStorage({
-  destination: './uploads',
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-  }
-});
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('api/v1/projects')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly cloudinaryService: CloudinaryService
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
-  create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
-    const dto = {
-      title: body.title,
-      content: body.content,
-      isActive: body.isActive !== 'false', 
-      imageUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
+    let imageUrl = undefined;
+
+    if (file) {
+      // 👈 رفع الصورة لمجلد projects في السحابة
+      const uploadResult = await this.cloudinaryService.uploadImage(file, 'projects');
+      imageUrl = uploadResult.secure_url;
+    }
+
+    const dto = { 
+      title: body.title, 
+      description: body.description, 
+      status: body.status,
+      imageUrl: imageUrl 
     };
+    
     return this.projectsService.create(dto);
   }
 
-  @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  @Get() 
+  findAll() { 
+    return this.projectsService.findAll(); 
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: storageOptions }))
-  update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
-    const dto: any = {
-      title: body.title,
-      content: body.content,
-      isActive: body.isActive !== 'false',
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+    const dto: any = { 
+      title: body.title, 
+      description: body.description,
+      status: body.status
     };
+
     if (file) {
-      dto.imageUrl = `https://hama-chamber-api.onrender.com/uploads/${file.filename}`;
+      const uploadResult = await this.cloudinaryService.uploadImage(file, 'projects');
+      dto.imageUrl = uploadResult.secure_url;
     }
+
     return this.projectsService.update(id, dto);
   }
 
-  @Delete(':id')
+  @Delete(':id') 
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) {
-    return this.projectsService.remove(id);
+  remove(@Param('id') id: string) { 
+    return this.projectsService.remove(id); 
   }
 }

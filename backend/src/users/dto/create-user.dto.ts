@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsIn, IsBoolean } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsEnum, IsBoolean } from 'class-validator';
+import { Role } from '@prisma/client'; // 👈 1. استيراد الـ Enum من Prisma
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'الاسم مطلوب' })
@@ -14,10 +15,9 @@ export class CreateUserDto {
   password: string;
 
   @IsOptional()
-  @IsIn(['super_admin', 'admin', 'editor'], { message: 'الدور غير صالح' })
-  role?: string;
+  @IsEnum(Role, { message: 'الصلاحية غير صالحة' }) // 👈 2. التحقق باستخدام IsEnum بدلاً من IsIn
+  role?: Role; // 👈 3. استخدام نوع Role بدلاً من string
 
-  // 👇 هذا هو الجزء الذي كان يسبب المشكلة، أضفناه الآن 👇
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

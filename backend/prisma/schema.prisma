@@ -4,8 +4,16 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // 👈 تم حذف سطر الـ url من هنا نهائياً (هذا هو نظام Prisma 7)
 }
 
+// 👈 1. إضافة الـ Enum الخاص بالصلاحيات
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+// ... (باقي الجداول كما هي تماماً بدون أي تغيير) ...
 model BoardMember {
   id        String   @id @default(uuid())
   name      String
@@ -109,7 +117,7 @@ model Page {
   slug      String   @unique
   content   String
   isActive  Boolean  @default(true)
-  isSecure  Boolean  @default(false) // 👈 أضف هذا السطر فقط!
+  isSecure  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -119,7 +127,7 @@ model User {
   name                 String
   email                String    @unique
   password             String
-  role                 String    @default("editor")
+  role                 Role      @default(EDITOR)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   isActive             Boolean   @default(true)

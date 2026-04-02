@@ -1,14 +1,13 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
-import { Role } from '@prisma/client'; // 👈 استيراد الـ Enum
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // 👈 تحديد نوع الصلاحيات المتوقعة بـ Role[]
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -19,6 +18,11 @@ export class RolesGuard implements CanActivate {
     }
 
     const { user } = context.switchToHttp().getRequest();
+
+    // 👈 الإصلاح هنا: التحقق من وجود المستخدم والـ role
+    if (!user || !user.role) {
+      throw new UnauthorizedException('يرجى تسجيل الدخول للوصول إلى هذا المسار');
+    }
 
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {

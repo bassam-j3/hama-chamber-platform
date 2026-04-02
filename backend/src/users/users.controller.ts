@@ -5,6 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client'; // 👈 استيراد الـ Enum
 
 @Controller('api/v1/users')
 export class UsersController {
@@ -24,10 +25,10 @@ export class UsersController {
 
   // ================= مسارات محمية ================= //
   
-  // فقط الـ super_admin يستطيع إضافة مدراء
+  // فقط الـ ADMIN يستطيع إضافة مدراء
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('super_admin') 
+  @Roles(Role.ADMIN) // 👈 تم إزالة علامات التنصيص لاستخدام الـ Enum مباشرة
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -39,17 +40,17 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  // الـ super_admin فقط يستطيع التعديل أو الحذف
+  // الـ ADMIN فقط يستطيع التعديل أو الحذف
   @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('super_admin')
+  @Roles(Role.ADMIN) // 👈 تم التعديل هنا
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('super_admin')
+  @Roles(Role.ADMIN) // 👈 تم التعديل هنا
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }

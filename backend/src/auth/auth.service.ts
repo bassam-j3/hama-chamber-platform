@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@prisma/client'; // 👈 تم الاستيراد بنجاح
+import { Role } from '@prisma/client'; 
 
 @Injectable()
 export class AuthService {
@@ -42,23 +42,26 @@ export class AuthService {
       throw new BadRequestException('تمت تهيئة حساب المدير مسبقاً، لا يمكن إنشاء حساب جديد بهذه الطريقة');
     }
 
-    // 👈 الإصلاح الأمني: جلب كلمة المرور من متغيرات البيئة (مع قيمة افتراضية للبيئة التطويرية)
     const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123456';
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    
+    // ✅ الإصلاح 1: جلب عدد جولات التشفير من البيئة لتسهيل تعديلها مستقبلاً (مع قيمة افتراضية 10)
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
+    const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
 
     const admin = await this.prisma.user.create({
       data: {
         name: 'مدير النظام',
-        email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@hamachamber.com', // 👈 استخدام البيئة للبريد أيضاً
+        email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@hamachamber.com',
         password: hashedPassword,
-        role: Role.ADMIN, // 👈 الإصلاح البرمجي: استخدام الـ Enum المطابق لقاعدة البيانات بدلاً من النص
+        role: Role.ADMIN, 
       },
     });
 
+    // ✅ الإصلاح 2: إزالة كلمة المرور نهائياً من الرد
     return { 
       message: 'تم إنشاء حساب المدير بنجاح', 
       email: admin.email, 
-      password: defaultPassword // ملاحظة: من الأفضل عدم إرجاع كلمة المرور في الرد النهائي (Response) عند نقل المشروع للإنتاج (Production)
+      // 🚫 تم حذف سطر إرجاع كلمة المرور لأسباب أمنية
     };
   }
 }

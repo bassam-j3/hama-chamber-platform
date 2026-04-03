@@ -1,13 +1,9 @@
-import 'dotenv/config'; // 👈 هذا السطر السحري هو ما سيقوم بقراءة ملف .env الخاص بك
+import 'dotenv/config';
 import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
 
-// Setup Prisma 7 Client with PG Adapter
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+// Standard Prisma Client initialization (no pg adapter needed for Node.js)
+const prisma = new PrismaClient();
 
 async function main() {
   console.log('🚀 Start seeding database...');
@@ -48,5 +44,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
-    await pool.end(); // Close the connection pool
   });

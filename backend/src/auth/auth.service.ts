@@ -1,67 +1,68 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Role } from '@prisma/client'; 
 
-@Injectable()
-export class AuthService {
-  constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
-  ) {}
+describe('AuthService', () => {
+  let service: AuthService;
+  let prisma: PrismaService;
 
-  // 1. دالة تسجيل الدخول
-  async login(loginDto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: loginDto.email },
+  const mockPrismaService = {
+    user: {
+      count: jest.fn(),
+      create: jest.fn(),
+      findUnique: jest.fn(),
+    },
+  };
+
+  const mockJwtService = {
+    sign: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: JwtService, useValue: mockJwtService },
+      ],
+    }).compile();
+
+    service = module.get<AuthService>(AuthService);
+    prisma = module.get<PrismaService>(PrismaService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('initAdmin (Security Test)', () => {
+    it('should NOT return plaintext password in the response', async () => {
+      // إعداد بيئة الاختبار: لا يوجد مستخدمين
+      mockPrismaService.user.count.mockResolvedValue(0);
+      mockPrismaService.user.create.mockResolvedValue({
+        id: '123',
+        email: 'admin@hamachamber.com',
+      });
+
+      const result = await service.initAdmin();
+
+      // التأكد من أن الرد يحتوي على الإيميل والرسالة فقط، ولا يحتوي على كلمة المرور
+      expect(result).toHaveProperty('message');
+      expect(result).toHaveProperty('email');
+      expect(result).not.toHaveProperty('password'); // 👈 التحقق الأمني الحرج
     });
 
-    if (!user) {
-      throw new UnauthorizedException('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-    }
+    it('should throw BadRequestException if a user already exists', async () => {
+      // إعداد بيئة الاختبار: يوجد مستخدم مسبقاً
+      mockPrismaService.user.count.mockResolvedValue(1);
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-    }
-
-    const payload = { email: user.email, sub: user.id, name: user.name, role: user.role };
-    
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
-    };
-  }
-
-  // 2. دالة لإنشاء أول مدير في النظام (تُستخدم مرة واحدة فقط)
-  async initAdmin() {
-    const usersCount = await this.prisma.user.count();
-    if (usersCount > 0) {
-      throw new BadRequestException('تمت تهيئة حساب المدير مسبقاً، لا يمكن إنشاء حساب جديد بهذه الطريقة');
-    }
-
-    const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123456';
-    
-    // ✅ الإصلاح 1: جلب عدد جولات التشفير من البيئة لتسهيل تعديلها مستقبلاً (مع قيمة افتراضية 10)
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
-    const hashedPassword = await bcrypt.hash(defaultPassword, saltRounds);
-
-    const admin = await this.prisma.user.create({
-      data: {
-        name: 'مدير النظام',
-        email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@hamachamber.com',
-        password: hashedPassword,
-        role: Role.ADMIN, 
-      },
+      await expect(service.initAdmin()).rejects.toThrow(BadRequestException);
+      await expect(service.initAdmin()).rejects.toThrow(
+        'تمت تهيئة حساب المدير مسبقاً، لا يمكن إنشاء حساب جديد بهذه الطريقة',
+      );
     });
-
-    // ✅ الإصلاح 2: إزالة كلمة المرور نهائياً من الرد
-    return { 
-      message: 'تم إنشاء حساب المدير بنجاح', 
-      email: admin.email, 
-      // 🚫 تم حذف سطر إرجاع كلمة المرور لأسباب أمنية
-    };
-  }
-}
+  });
+});

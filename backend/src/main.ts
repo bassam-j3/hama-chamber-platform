@@ -3,7 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { AllExceptionsFilter } from './common/filters/http-exception.filter'; // 👈 1. استيراد فلتر الأخطاء
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,13 +12,11 @@ async function bootstrap() {
   // حماية الـ Headers
   app.use(helmet());
   
-  // توحيد مسار الـ API
-  app.setGlobalPrefix('api');
-
   // إعدادات الـ CORS الآمنة
+  // لا يمكن استخدام النجمة '*' مع تفعيل الـ credentials، لذلك نضع رابط التطوير كاحتياطي آمن
   const allowedOrigins = process.env.FRONTEND_URL 
     ? process.env.FRONTEND_URL.split(',') 
-    : '*';
+    : ['http://localhost:5173'];
 
   app.enableCors({
     origin: allowedOrigins,
@@ -35,15 +33,15 @@ async function bootstrap() {
     }),
   );
 
-  // 👇 تفعيل توحيد الردود الناجحة
+  // تفعيل توحيد الردود الناجحة
   app.useGlobalInterceptors(new ResponseInterceptor());
 
-  // 👇 2. تفعيل توحيد الأخطاء
+  // تفعيل توحيد الأخطاء
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
   
-  logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  logger.log(`🚀 Application is running on: http://localhost:${port}`);
 }
 bootstrap();

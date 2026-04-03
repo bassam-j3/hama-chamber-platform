@@ -10,10 +10,4 @@ export class AuthController {
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
-
-  // هذا المسار لإنشاء أول مدير، بمجرد استخدامه سيتوقف عن العمل لحماية النظام
-  @Post('init-admin')
-  initAdmin() {
-    return this.authService.initAdmin();
-  }
 }

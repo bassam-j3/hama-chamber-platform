@@ -22,6 +22,8 @@ model BoardMember {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Project {
@@ -32,6 +34,8 @@ model Project {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Circular {
@@ -43,6 +47,9 @@ model Circular {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([category])
 }
 
 model Law {
@@ -53,6 +60,8 @@ model Law {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model News {
@@ -63,6 +72,8 @@ model News {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model MarketPrice {
@@ -80,6 +91,8 @@ model Exhibition {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Opportunity {
@@ -90,6 +103,8 @@ model Opportunity {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Banner {
@@ -100,6 +115,8 @@ model Banner {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Faq {
@@ -109,6 +126,8 @@ model Faq {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model Page {
@@ -120,6 +139,8 @@ model Page {
   isSecure  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive])
 }
 
 model User {
@@ -133,4 +154,6 @@ model User {
   isActive             Boolean   @default(true)
   resetPasswordExpires DateTime?
   resetPasswordToken   String?
+
+  @@index([isActive])
 }

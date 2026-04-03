@@ -10,6 +10,21 @@ const axiosInstance = axios.create({
   },
 });
 
+// إضافة Response Interceptor لفك التغليف التلقائي للبيانات القادمة من الـ Backend
+axiosInstance.interceptors.response.use(
+  (response) => {
+    // التحقق مما إذا كانت الخلفية قد غلفت الرد بالشكل { success, data, timestamp }
+    if (response.data && response.data.success === true && response.data.data !== undefined) {
+      // استبدال هيكل Axios بالبيانات الفعلية فقط لتجنب انهيار الواجهة
+      response.data = response.data.data;
+    }
+    return response;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // هنا يمكننا مستقبلاً إضافة الـ Interceptors (مثل وضع الـ Token تلقائياً في كل طلب)
 /*
 axiosInstance.interceptors.request.use((config) => {

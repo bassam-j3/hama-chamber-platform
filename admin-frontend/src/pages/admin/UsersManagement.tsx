@@ -1,100 +1,69 @@
-import { useEffect, useState } from 'react';
-import { Container, Card, Table, Button, Badge, Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import axiosInstance from '../../api/axiosInstance';
-import { useAuth } from '../../context/AuthContext';
+import { useState, useEffect } from "react";
+import axiosInstance from "../../api/axiosInstance";
+import { Container, Row, Col, Card, Button, Badge, Spinner, Modal, Table } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+
+interface User { id: string; name: string; email: string; role: string; isActive: boolean; }
 
 export default function UsersManagement() {
-  const [users, setUsers] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const [data, setData] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { user: currentUser } = useAuth(); 
+  const [error, setError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => { fetchUsers(); }, []);
-
-  const fetchUsers = () => {
-    setIsLoading(true);
-    axiosInstance.get('/users')
-      .then(res => setUsers(res.data))
-      .catch(err => console.error(err))
-      .finally(() => setIsLoading(false));
+  const fetchData = async () => {
+    setIsLoading(true); setError(null);
+    try { const response = await axiosInstance.get("/users"); setData(response.data); } 
+    catch (err: any) { setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); } 
+    finally { setIsLoading(false); }
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الحساب نهائياً؟')) {
-      try {
-        await axiosInstance.delete(`/users/${id}`);
-        fetchUsers();
-      } catch (error: any) {
-        alert(error.response?.data?.message || 'حدث خطأ أثناء الحذف');
-      }
-    }
-  };
+  useEffect(() => { fetchData(); }, []);
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'super_admin': return <Badge bg="danger">مدير عام</Badge>;
-      case 'admin': return <Badge bg="primary">مدير إداري</Badge>;
-      default: return <Badge bg="secondary">محرر</Badge>;
-    }
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    setIsDeleting(true);
+    try {
+      await axiosInstance.delete(`/users/${itemToDelete}`);
+      setData(data.filter(i => i.id !== itemToDelete));
+      setShowDeleteModal(false); setItemToDelete(null);
+    } catch (error) { console.error(error); } finally { setIsDeleting(false); }
   };
-
-  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
 
   return (
-    <Container fluid>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="h3 fw-bold text-dark d-flex align-items-center gap-2">
-          <span className="material-symbols-outlined text-primary fs-2">manage_accounts</span>
-          إدارة المدراء والصلاحيات
-        </h2>
-        {currentUser?.role === 'super_admin' && (
-          <Link to="/admin/users/create" className="btn btn-primary fw-bold d-flex align-items-center gap-2 px-4 shadow-sm">
-            <span className="material-symbols-outlined">person_add</span> إضافة مستخدم جديد
-          </Link>
+    <Container fluid className="max-w-75">
+      <Row className="justify-content-center"><Col lg={12}><Card className="shadow-sm border-0 rounded-4"><Card.Body className="p-4">
+        <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+          <div className="d-flex align-items-center gap-2"><span className="material-symbols-outlined text-primary fs-2">manage_accounts</span><h4 className="text-primary fw-bold mb-0">إدارة المستخدمين</h4></div>
+          <Button variant="primary" size="sm" onClick={() => navigate('/admin/users/create')} className="fw-bold px-3 d-flex align-items-center gap-1 shadow-sm"><span className="material-symbols-outlined fs-6">add</span> إضافة مستخدم جديد</Button>
+        </div>
+        {isLoading ? ( <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>
+        ) : error ? ( <div className="text-center p-5 text-danger bg-light rounded-4 border"><span className="material-symbols-outlined fs-1 mb-2">error_outline</span><h5>{error}</h5><Button variant="outline-danger" size="sm" onClick={fetchData} className="mt-3 fw-bold px-4">إعادة المحاولة</Button></div>
+        ) : data.length === 0 ? ( <div className="text-center p-5 text-muted"><span className="material-symbols-outlined fs-1 mb-2">inbox</span><h5>لا يوجد مستخدمين مضافين حالياً</h5></div>
+        ) : (
+          <Table responsive hover className="align-middle text-center border-top">
+            <thead className="table-light"><tr><th className="text-secondary font-monospace text-start">الاسم</th><th className="text-secondary font-monospace">البريد الإلكتروني</th><th className="text-secondary font-monospace">الصلاحية</th><th className="text-secondary font-monospace">الحالة</th><th className="text-secondary font-monospace">الإجراءات</th></tr></thead>
+            <tbody>
+              {data.map((item) => (
+                <tr key={item.id}>
+                  <td className="fw-bold text-dark text-start">{item.name}</td>
+                  <td>{item.email}</td>
+                  <td>{item.role === 'ADMIN' ? <Badge bg="danger" className="px-3 py-2 rounded-pill shadow-sm">مدير نظام</Badge> : <Badge bg="info" className="px-3 py-2 rounded-pill shadow-sm text-dark">محرر</Badge>}</td>
+                  <td>{item.isActive ? <Badge bg="success" className="px-3 py-2 rounded-pill shadow-sm">نشط</Badge> : <Badge bg="secondary" className="px-3 py-2 rounded-pill shadow-sm">موقوف</Badge>}</td>
+                  <td>
+                    <Button variant="outline-primary" size="sm" className="me-2 fw-bold" onClick={() => navigate(`/admin/users/edit/${item.id}`, { state: { userItem: item } })}>تعديل</Button>
+                    <Button variant="outline-danger" size="sm" className="fw-bold" onClick={() => { setItemToDelete(item.id); setShowDeleteModal(true); }}>إيقاف</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
         )}
-      </div>
-
-      <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
-        <Table hover responsive className="mb-0 align-middle text-center">
-          <thead className="bg-light">
-            <tr>
-              <th className="py-3 text-secondary">الاسم</th>
-              <th className="py-3 text-secondary">البريد الإلكتروني</th>
-              <th className="py-3 text-secondary">الصلاحية</th>
-              <th className="py-3 text-secondary">الحالة</th>
-              <th className="py-3 text-secondary">الإجراءات</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map(user => (
-              <tr key={user.id}>
-                <td className="fw-bold">{user.name}</td>
-                <td dir="ltr">{user.email}</td>
-                <td>{getRoleBadge(user.role)}</td>
-                <td>{user.isActive ? <Badge bg="success" pill>نشط</Badge> : <Badge bg="danger" pill>موقوف</Badge>}</td>
-                <td>
-                  <div className="d-flex justify-content-center gap-2">
-                    {currentUser?.role === 'super_admin' ? (
-                      <>
-                        <Link to={`/admin/users/edit/${user.id}`} state={{ userItem: user }} className="btn btn-sm btn-light text-primary border shadow-sm">
-                          <span className="material-symbols-outlined fs-6">edit</span>
-                        </Link>
-                        {currentUser.id !== user.id && (
-                          <Button variant="light" size="sm" className="text-danger border shadow-sm" onClick={() => handleDelete(user.id)}>
-                            <span className="material-symbols-outlined fs-6">delete</span>
-                          </Button>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-muted small">للعرض فقط</span>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
+      </Card.Body></Card></Col></Row>
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered backdrop="static"><Modal.Header className="border-0 pb-0 d-flex justify-content-between align-items-center"><Modal.Title className="text-danger fw-bold d-flex align-items-center gap-2"><span className="material-symbols-outlined fs-2">warning</span>تأكيد الإيقاف</Modal.Title></Modal.Header><Modal.Body className="fs-6 text-secondary pt-3 pb-4 px-4">هل أنت متأكد من رغبتك في إيقاف هذا المستخدم؟ لن يتمكن من تسجيل الدخول مجدداً.</Modal.Body><Modal.Footer className="border-0 pt-0 bg-light rounded-bottom d-flex gap-2 p-3"><Button variant="outline-secondary" className="fw-bold px-4" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>إلغاء</Button><Button variant="danger" className="fw-bold px-4 shadow-sm" onClick={confirmDelete} disabled={isDeleting}>{isDeleting ? "جاري الإيقاف..." : "تأكيد الإيقاف"}</Button></Modal.Footer></Modal>
     </Container>
   );
 }

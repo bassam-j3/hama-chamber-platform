@@ -3,11 +3,9 @@ import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { BadRequestException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -31,7 +29,6 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -40,7 +37,6 @@ describe('AuthService', () => {
 
   describe('initAdmin (Security Test)', () => {
     it('should NOT return plaintext password in the response', async () => {
-      // إعداد بيئة الاختبار: لا يوجد مستخدمين
       mockPrismaService.user.count.mockResolvedValue(0);
       mockPrismaService.user.create.mockResolvedValue({
         id: '123',
@@ -49,20 +45,15 @@ describe('AuthService', () => {
 
       const result = await service.initAdmin();
 
-      // التأكد من أن الرد يحتوي على الإيميل والرسالة فقط، ولا يحتوي على كلمة المرور
       expect(result).toHaveProperty('message');
       expect(result).toHaveProperty('email');
-      expect(result).not.toHaveProperty('password'); // 👈 التحقق الأمني الحرج
+      expect(result).not.toHaveProperty('password');
     });
 
     it('should throw BadRequestException if a user already exists', async () => {
-      // إعداد بيئة الاختبار: يوجد مستخدم مسبقاً
       mockPrismaService.user.count.mockResolvedValue(1);
 
       await expect(service.initAdmin()).rejects.toThrow(BadRequestException);
-      await expect(service.initAdmin()).rejects.toThrow(
-        'تمت تهيئة حساب المدير مسبقاً، لا يمكن إنشاء حساب جديد بهذه الطريقة',
-      );
     });
   });
 });

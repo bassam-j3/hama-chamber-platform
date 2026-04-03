@@ -1,4 +1,3 @@
-
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -11,14 +10,24 @@ export class ProjectsService {
   }
 
   findAll() {
-    return this.prisma.project.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.project.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   update(id: string, data: any) {
-    return this.prisma.project.update({ where: { id }, data });
+    return this.prisma.project.update({ 
+      where: { id }, 
+      data 
+    });
   }
 
   remove(id: string) {
-    return this.prisma.project.delete({ where: { id } });
+    // Implement Soft Delete instead of hard deleting from the database
+    return this.prisma.project.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 }

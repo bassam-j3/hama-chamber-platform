@@ -5,19 +5,28 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BannersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: any) { 
-    return this.prisma.banner.create({ data }); 
+  create(data: any) {
+    return this.prisma.banner.create({ data });
   }
-  
-  findAll() { 
-    return this.prisma.banner.findMany({ orderBy: { createdAt: 'desc' } }); 
+
+  findAll() {
+    return this.prisma.banner.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
-  
-  update(id: string, data: any) { 
-    return this.prisma.banner.update({ where: { id }, data }); 
+
+  update(id: string, data: any) {
+    return this.prisma.banner.update({ 
+      where: { id }, 
+      data 
+    });
   }
-  
-  remove(id: string) { 
-    return this.prisma.banner.delete({ where: { id } }); 
+
+  remove(id: string) {
+    return this.prisma.banner.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 }

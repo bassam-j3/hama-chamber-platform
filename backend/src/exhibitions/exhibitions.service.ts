@@ -5,8 +5,28 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ExhibitionsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: any) { return this.prisma.exhibition.create({ data }); }
-  findAll() { return this.prisma.exhibition.findMany({ orderBy: { createdAt: 'desc' } }); }
-  update(id: string, data: any) { return this.prisma.exhibition.update({ where: { id }, data }); }
-  remove(id: string) { return this.prisma.exhibition.delete({ where: { id } }); }
+  create(data: any) {
+    return this.prisma.exhibition.create({ data });
+  }
+
+  findAll() {
+    return this.prisma.exhibition.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  update(id: string, data: any) {
+    return this.prisma.exhibition.update({ 
+      where: { id }, 
+      data 
+    });
+  }
+
+  remove(id: string) {
+    return this.prisma.exhibition.update({
+      where: { id },
+      data: { isActive: false },
+    });
+  }
 }

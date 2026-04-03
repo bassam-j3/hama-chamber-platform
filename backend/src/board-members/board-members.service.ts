@@ -1,24 +1,32 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateBoardMemberDto } from './dto/create-board-member.dto';
 
 @Injectable()
 export class BoardMembersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateBoardMemberDto) {
-    return this.prisma.boardMember.create({ data: dto });
+  create(data: any) {
+    return this.prisma.boardMember.create({ data });
   }
 
-  async findAll() {
-    return this.prisma.boardMember.findMany({ orderBy: { createdAt: 'asc' } });
+  findAll() {
+    return this.prisma.boardMember.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' }, // ملاحظة: الترتيب هنا تصاعدي حسب طلبك المسبق
+    });
   }
 
-  async update(id: string, dto: CreateBoardMemberDto) {
-    return this.prisma.boardMember.update({ where: { id }, data: dto });
+  update(id: string, data: any) {
+    return this.prisma.boardMember.update({ 
+      where: { id }, 
+      data 
+    });
   }
 
-  async remove(id: string) {
-    return this.prisma.boardMember.delete({ where: { id } });
+  remove(id: string) {
+    return this.prisma.boardMember.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 }

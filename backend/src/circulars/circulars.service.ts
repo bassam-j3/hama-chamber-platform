@@ -10,14 +10,23 @@ export class CircularsService {
   }
 
   findAll() {
-    return this.prisma.circular.findMany({ orderBy: { createdAt: 'desc' } });
+    return this.prisma.circular.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   update(id: string, data: any) {
-    return this.prisma.circular.update({ where: { id }, data });
+    return this.prisma.circular.update({ 
+      where: { id }, 
+      data 
+    });
   }
 
   remove(id: string) {
-    return this.prisma.circular.delete({ where: { id } });
+    return this.prisma.circular.update({
+      where: { id },
+      data: { isActive: false },
+    });
   }
 }

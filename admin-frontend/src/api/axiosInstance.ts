@@ -1,39 +1,46 @@
-// src/api/axiosInstance.ts
 import axios from 'axios';
 
-// إنشاء نسخة مخصصة من Axios
 const axiosInstance = axios.create({
-  // Vite يستخدم import.meta.env لجلب المتغيرات
   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hama-chamber-api.onrender.com/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// إضافة Response Interceptor لفك التغليف التلقائي للبيانات القادمة من الـ Backend
-axiosInstance.interceptors.response.use(
-  (response) => {
-    // التحقق مما إذا كانت الخلفية قد غلفت الرد بالشكل { success, data, timestamp }
-    if (response.data && response.data.success === true && response.data.data !== undefined) {
-      // استبدال هيكل Axios بالبيانات الفعلية فقط لتجنب انهيار الواجهة
-      response.data = response.data.data;
+// Request Interceptor: Attach JWT Token automatically
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return response;
+    return config;
   },
   (error) => {
     return Promise.reject(error);
   }
 );
 
-// هنا يمكننا مستقبلاً إضافة الـ Interceptors (مثل وضع الـ Token تلقائياً في كل طلب)
-/*
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Response Interceptor: Unwrap data & Handle 401 Expirations
+axiosInstance.interceptors.response.use(
+  (response) => {
+    if (response.data && response.data.success === true && response.data.data !== undefined) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
+  (error) => {
+    // Handle Token Expiration
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      // Only redirect if not already on the login page to prevent loops
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
   }
-  return config;
-});
-*/
+);
 
 export default axiosInstance;

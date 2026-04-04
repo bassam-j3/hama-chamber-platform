@@ -4,10 +4,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import toast from 'react-hot-toast';
 
 const projectSchema = z.object({
   title: z.string().min(3, "عنوان المشروع مطلوب"),
@@ -29,7 +30,6 @@ export default function ProjectForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function ProjectForm() {
   
   const editorContent = watch("content");
 
-  // جلب البيانات في حالة التعديل
+  // Fetch data if editing
   useEffect(() => {
     if (id) {
       const stateProject = location.state?.projectItem;
@@ -55,7 +55,10 @@ export default function ProjectForm() {
             const item = res.data.find((p: any) => p.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => console.error(err))
+          .catch(err => {
+            console.error(err);
+            toast.error("فشل في تحميل بيانات المشروع");
+          })
           .finally(() => setIsLoading(false));
       }
     }
@@ -79,7 +82,9 @@ export default function ProjectForm() {
   };
 
   const onSubmit = async (data: ProjectFormValues) => {
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري حفظ المشروع...');
+    
     try {
       const formData = new FormData();
       formData.append('title', data.title);
@@ -91,16 +96,17 @@ export default function ProjectForm() {
 
       if (id) {
         await axiosInstance.put(`/projects/${id}`, formData, config);
-        setMessage({ text: "تم تحديث المشروع بنجاح! جاري العودة...", variant: "success" });
+        toast.success('تم تحديث المشروع بنجاح!', { id: toastId });
       } else {
         await axiosInstance.post("/projects", formData, config);
-        setMessage({ text: "تمت إضافة المشروع بنجاح! جاري العودة...", variant: "success" });
+        toast.success('تمت إضافة المشروع بنجاح!', { id: toastId });
       }
       
-      setTimeout(() => { navigate('/admin/projects'); }, 2000);
+      // Navigate immediately, the toast will persist globally
+      navigate('/admin/projects');
       
     } catch (error) { 
-      setMessage({ text: "حدث خطأ أثناء حفظ المشروع.", variant: "danger" }); 
+      toast.error('حدث خطأ أثناء حفظ المشروع.', { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
     }
@@ -121,8 +127,6 @@ export default function ProjectForm() {
               عودة للقائمة
             </Button>
           </div>
-          
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">

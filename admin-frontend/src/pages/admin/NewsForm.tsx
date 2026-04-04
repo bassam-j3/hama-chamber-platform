@@ -1,13 +1,13 @@
-// src/pages/admin/NewsForm.tsx
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import toast from 'react-hot-toast';
 
 const newsSchema = z.object({
   title: z.string().min(3, "عنوان الخبر مطلوب"),
@@ -19,12 +19,11 @@ type NewsFormValues = z.infer<typeof newsSchema>;
 
 export default function NewsForm() {
   const navigate = useNavigate();
-  const { id } = useParams(); // لمعرفة إذا كنا في حالة تعديل
-  const location = useLocation(); // لاستقبال البيانات الممررة من صفحة الإدارة
+  const { id } = useParams();
+  const location = useLocation();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -36,7 +35,6 @@ export default function NewsForm() {
   
   const editorContent = watch("content");
 
-  // جلب البيانات وتعبئتها في حالة التعديل
   useEffect(() => {
     if (id) {
       const stateNews = location.state?.newsItem;
@@ -49,7 +47,10 @@ export default function NewsForm() {
             const item = res.data.find((n: any) => n.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => console.error(err))
+          .catch(err => {
+            console.error(err);
+            toast.error("فشل في تحميل بيانات الخبر");
+          })
           .finally(() => setIsLoading(false));
       }
     }
@@ -70,7 +71,9 @@ export default function NewsForm() {
   };
 
   const onSubmit = async (data: NewsFormValues) => {
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري حفظ الخبر...');
+    
     try {
       const formData = new FormData();
       formData.append('title', data.title);
@@ -82,25 +85,22 @@ export default function NewsForm() {
 
       if (id) {
         await axiosInstance.put(`/news/${id}`, formData, config);
-        setMessage({ text: "تم تحديث الخبر بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم تحديث الخبر بنجاح!", { id: toastId });
       } else {
         await axiosInstance.post("/news", formData, config);
-        setMessage({ text: "تم نشر الخبر بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم نشر الخبر بنجاح!", { id: toastId });
       }
       
-      // العودة لصفحة الإدارة بعد ثانيتين
-      setTimeout(() => { navigate('/admin/news'); }, 2000);
+      navigate('/admin/news');
       
     } catch (error) { 
-      setMessage({ text: "حدث خطأ أثناء حفظ الخبر.", variant: "danger" }); 
+      toast.error("حدث خطأ أثناء حفظ الخبر.", { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
-  }
+  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
 
   return (
     <Container fluid className="max-w-75">
@@ -116,8 +116,6 @@ export default function NewsForm() {
             </Button>
           </div>
           
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
-          
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">عنوان الخبر</Form.Label>
@@ -129,13 +127,7 @@ export default function NewsForm() {
               <Form.Label className="fw-bold text-dark">تفاصيل الخبر</Form.Label>
               <div style={{ direction: 'rtl' }}>
                 {/* @ts-ignore */}
-                <ReactQuill 
-                  theme="snow" 
-                  value={editorContent || ""} 
-                  onChange={(val: string) => setValue("content", val, { shouldValidate: true })} 
-                  style={{ height: '300px' }} 
-                  placeholder="اكتب التفاصيل هنا، يمكنك استخدام التنسيقات وإضافة القوائم..."
-                />
+                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} placeholder="اكتب التفاصيل هنا، يمكنك استخدام التنسيقات وإضافة القوائم..."/>
               </div>
               {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
             </Form.Group>

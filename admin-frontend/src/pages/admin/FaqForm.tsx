@@ -1,13 +1,13 @@
-// src/pages/admin/FaqForm.tsx
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import toast from 'react-hot-toast';
 
 const faqSchema = z.object({
   question: z.string().min(5, "السؤال مطلوب (5 أحرف على الأقل)"),
@@ -24,7 +24,6 @@ export default function FaqForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormValues>({ 
     resolver: zodResolver(faqSchema), defaultValues: { isActive: true, answer: "" }
@@ -44,7 +43,10 @@ export default function FaqForm() {
             const item = res.data.find((f: any) => f.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => console.error(err))
+          .catch(err => {
+            console.error(err);
+            toast.error("فشل في تحميل بيانات السؤال");
+          })
           .finally(() => setIsLoading(false));
       }
     }
@@ -57,17 +59,22 @@ export default function FaqForm() {
   };
 
   const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري الحفظ...');
     try {
       if (id) {
         await axiosInstance.put(`/faqs/${id}`, data);
-        setMessage({ text: "تم تحديث السؤال بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم تحديث السؤال بنجاح!", { id: toastId });
       } else {
         await axiosInstance.post("/faqs", data);
-        setMessage({ text: "تمت إضافة السؤال بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تمت إضافة السؤال بنجاح!", { id: toastId });
       }
-      setTimeout(() => { navigate('/admin/faqs'); }, 2000);
-    } catch (error) { setMessage({ text: "حدث خطأ أثناء الحفظ.", variant: "danger" }); } finally { setIsSubmitting(false); }
+      navigate('/admin/faqs');
+    } catch (error) { 
+        toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
+    } finally { 
+        setIsSubmitting(false); 
+    }
   };
 
   if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
@@ -83,8 +90,6 @@ export default function FaqForm() {
             </h4>
             <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/faqs')}>عودة للقائمة</Button>
           </div>
-          
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">

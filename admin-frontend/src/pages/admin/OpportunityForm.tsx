@@ -1,13 +1,13 @@
-// src/pages/admin/OpportunityForm.tsx
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import toast from 'react-hot-toast';
 
 const oppSchema = z.object({
   title: z.string().min(3, "عنوان الفرصة التجارية مطلوب"),
@@ -24,7 +24,6 @@ export default function OpportunityForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -47,7 +46,10 @@ export default function OpportunityForm() {
             const item = res.data.find((o: any) => o.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => console.error(err))
+          .catch(err => {
+            console.error(err);
+            toast.error("فشل في تحميل البيانات");
+          })
           .finally(() => setIsLoading(false));
       }
     }
@@ -68,7 +70,9 @@ export default function OpportunityForm() {
   };
 
   const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري حفظ الفرصة...');
+    
     try {
       const formData = new FormData();
       formData.append('title', data.title);
@@ -80,13 +84,17 @@ export default function OpportunityForm() {
 
       if (id) {
         await axiosInstance.put(`/opportunities/${id}`, formData, config);
-        setMessage({ text: "تم التحديث بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم التحديث بنجاح!", { id: toastId });
       } else {
         await axiosInstance.post("/opportunities", formData, config);
-        setMessage({ text: "تم النشر بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم النشر بنجاح!", { id: toastId });
       }
-      setTimeout(() => { navigate('/admin/opportunities'); }, 2000);
-    } catch (error) { setMessage({ text: "حدث خطأ.", variant: "danger" }); } finally { setIsSubmitting(false); }
+      navigate('/admin/opportunities');
+    } catch (error) { 
+        toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
+    } finally { 
+        setIsSubmitting(false); 
+    }
   };
 
   if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
@@ -102,8 +110,6 @@ export default function OpportunityForm() {
             </h4>
             <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/opportunities')}>عودة للقائمة</Button>
           </div>
-          
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">

@@ -1,11 +1,11 @@
-// src/pages/admin/BannerForm.tsx
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const bannerSchema = z.object({
   title: z.string().min(3, "عنوان البانر مطلوب"),
@@ -22,7 +22,6 @@ export default function BannerForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -44,7 +43,10 @@ export default function BannerForm() {
             const item = res.data.find((b: any) => b.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => console.error(err))
+          .catch(err => {
+              console.error(err);
+              toast.error("فشل في تحميل بيانات البانر");
+          })
           .finally(() => setIsLoading(false));
       }
     }
@@ -67,11 +69,13 @@ export default function BannerForm() {
 
   const onSubmit = async (data: FormValues) => {
     if (!selectedFile && !id) {
-        setMessage({ text: "الرجاء اختيار صورة للبانر.", variant: "danger" });
+        toast.error("الرجاء اختيار صورة للبانر.");
         return;
     }
 
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري حفظ البانر...');
+
     try {
       const formData = new FormData();
       formData.append('title', data.title);
@@ -83,16 +87,16 @@ export default function BannerForm() {
 
       if (id) {
         await axiosInstance.put(`/banners/${id}`, formData, config);
-        setMessage({ text: "تم تحديث البانر بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم تحديث البانر بنجاح!", { id: toastId });
       } else {
         await axiosInstance.post("/banners", formData, config);
-        setMessage({ text: "تمت إضافة البانر بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تمت إضافة البانر بنجاح!", { id: toastId });
       }
       
-      setTimeout(() => { navigate('/admin/banners'); }, 2000);
+      navigate('/admin/banners');
       
     } catch (error) { 
-      setMessage({ text: "حدث خطأ أثناء حفظ البانر.", variant: "danger" }); 
+      toast.error("حدث خطأ أثناء حفظ البانر.", { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
     }
@@ -113,8 +117,6 @@ export default function BannerForm() {
               عودة للقائمة
             </Button>
           </div>
-          
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">

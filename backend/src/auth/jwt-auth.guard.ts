@@ -1,26 +1,18 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
-    const secret = process.env.JWT_SECRET;
-    
-    // Fail fast and loud if the secret is missing
-    if (!secret) {
-      throw new Error('CRITICAL SECURITY ERROR: JWT_SECRET environment variable is missing!');
-    }
-
-    super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: secret,
-    });
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  canActivate(context: ExecutionContext) {
+    // You can add custom authentication logic here if needed
+    return super.canActivate(context);
   }
 
-  async validate(payload: any) {
-    // هذا الكائن سيصبح متاحاً في أي مسار محمي عبر (req.user)
-    return { userId: payload.sub, email: payload.email, name: payload.name, role: payload.role };
+  handleRequest(err: any, user: any, info: any) {
+    // You can throw an exception based on either "info" or "err" arguments
+    if (err || !user) {
+      throw err || new UnauthorizedException('Authentication token is missing or invalid');
+    }
+    return user;
   }
 }

@@ -2,20 +2,20 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Container, Card, Form, Button, Alert, Spinner, InputGroup, Row, Col, Modal } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner, InputGroup, Row, Col, Modal } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { QRCodeSVG } from 'qrcode.react'; 
 import axiosInstance from "../../api/axiosInstance";
+import toast from 'react-hot-toast';
 
-// 👈 أضفنا حقل isSecure لنحدد نوع الصفحة
 const pageSchema = z.object({
   title: z.string().min(3, "عنوان الصفحة مطلوب"),
   slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9\u0600-\u06FF\-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية أو عربية وأرقام وشرطات (-) فقط"),
   content: z.string().min(10, "محتوى الصفحة مطلوب"),
   isActive: z.boolean(),
-  isSecure: z.boolean(), // 👈 التعديل هنا: مسحنا .default(false)
+  isSecure: z.boolean(),
 });
 
 type FormValues = z.infer<typeof pageSchema>;
@@ -28,7 +28,6 @@ export default function PageForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
   
   const [showQrModal, setShowQrModal] = useState(false);
   const [savedPageData, setSavedPageData] = useState<{slug: string, title: string} | null>(null);
@@ -40,7 +39,6 @@ export default function PageForm() {
   const editorContent = watch("content");
   const titleValue = watch("title"); 
 
-  // ميزة الرابط التلقائي (Auto-Slug)
   useEffect(() => {
     if (!id && titleValue) {
       const generatedSlug = titleValue.trim().replace(/[\s_]+/g, '-').replace(/[^\w\u0600-\u06FF\-]+/g, ''); 
@@ -60,7 +58,10 @@ export default function PageForm() {
             const item = res.data.find((p: any) => p.id === id);
             if (item) populateForm(item);
           })
-          .catch((err: any) => console.error(err)) 
+          .catch((err: any) => {
+              console.error(err);
+              toast.error("فشل تحميل بيانات الصفحة");
+          }) 
           .finally(() => setIsLoading(false));
       }
     }
@@ -71,35 +72,38 @@ export default function PageForm() {
     setValue("slug", data.slug);
     setValue("content", data.content);
     setValue("isActive", data.isActive);
-    setValue("isSecure", data.isSecure || false); // 👈 تعبئة حالة الأمان
+    setValue("isSecure", data.isSecure || false);
   };
 
   const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري حفظ الصفحة...');
+
     try {
       if (id) {
         await axiosInstance.put(`/pages/${id}`, data);
-        setMessage({ text: "تم تحديث الصفحة بنجاح!", variant: "success" });
+        toast.success("تم تحديث الصفحة بنجاح!", { id: toastId });
       } else {
         await axiosInstance.post("/pages", data);
-        setMessage({ text: "تم نشر الصفحة بنجاح!", variant: "success" });
+        toast.success("تم نشر الصفحة بنجاح!", { id: toastId });
       }
 
-      // 👈 إذا كانت الصفحة محمية، اعرض الـ QR، وإلا عُد للقائمة فوراً
       if (data.isSecure) {
         setSavedPageData({ slug: data.slug, title: data.title });
         setShowQrModal(true); 
       } else {
-        setTimeout(() => { navigate('/admin/pages'); }, 1500);
+        navigate('/admin/pages');
       }
 
     } catch (error: any) { 
       if(error.response?.data?.message?.includes('Unique constraint')) {
-        setMessage({ text: "هذا الرابط (Slug) مستخدم لصفحة أخرى، يرجى تغييره.", variant: "danger" });
+        toast.error("هذا الرابط (Slug) مستخدم لصفحة أخرى، يرجى تغييره.", { id: toastId });
       } else {
-        setMessage({ text: "حدث خطأ أثناء الحفظ.", variant: "danger" }); 
+        toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
       }
-    } finally { setIsSubmitting(false); }
+    } finally { 
+        setIsSubmitting(false); 
+    }
   };
 
   const handlePrintQR = () => {
@@ -140,8 +144,6 @@ export default function PageForm() {
             <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/pages')}>عودة للقائمة</Button>
           </div>
           
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
-          
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Row>
               <Col md={6}>
@@ -171,7 +173,6 @@ export default function PageForm() {
               </div>
             </Form.Group>
 
-            {/* 👇 قسم الإعدادات (نشر + حماية) */}
             <Row className="mb-5 pt-4 border-top">
               <Col md={6}>
                 <Form.Group>
@@ -195,7 +196,6 @@ export default function PageForm() {
         </Card.Body>
       </Card>
 
-      {/* نافذة الـ QR Code */}
       <Modal show={showQrModal} onHide={() => { setShowQrModal(false); navigate('/admin/pages'); }} centered backdrop="static">
         <Modal.Header className="border-0 bg-primary text-white d-flex justify-content-between align-items-center">
           <Modal.Title className="fw-bold d-flex align-items-center gap-2">

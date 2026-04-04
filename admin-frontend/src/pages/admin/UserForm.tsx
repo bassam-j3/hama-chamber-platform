@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
+import toast from 'react-hot-toast';
 
 export default function UserForm() {
   const navigate = useNavigate();
@@ -11,7 +12,6 @@ export default function UserForm() {
 
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'editor', isActive: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (isEdit && location.state?.userItem) {
@@ -22,23 +22,29 @@ export default function UserForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true); setError('');
-
     if (!isEdit && formData.password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-      setIsSubmitting(false); return;
+      toast.error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      return;
     }
+
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري حفظ البيانات...');
 
     try {
       const payload: any = { ...formData };
-      if (isEdit && !payload.password) delete payload.password; // لا ترسل الباسورد إذا كانت فارغة في التعديل
+      if (isEdit && !payload.password) delete payload.password;
 
-      if (isEdit) await axiosInstance.put(`/users/${id}`, payload);
-      else await axiosInstance.post('/users', payload);
+      if (isEdit) {
+        await axiosInstance.put(`/users/${id}`, payload);
+        toast.success("تم تحديث المستخدم بنجاح!", { id: toastId });
+      } else {
+        await axiosInstance.post('/users', payload);
+        toast.success("تمت إضافة المستخدم بنجاح!", { id: toastId });
+      }
       
       navigate('/admin/users');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم');
+      toast.error(err.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -55,8 +61,6 @@ export default function UserForm() {
             </h4>
             <Button variant="light" onClick={() => navigate('/admin/users')}>عودة للقائمة</Button>
           </div>
-          
-          {error && <Alert variant="danger">{error}</Alert>}
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
@@ -87,8 +91,8 @@ export default function UserForm() {
               <Form.Check type="switch" label="حساب نشط (يمكنه تسجيل الدخول)" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="fw-bold text-primary" />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner size="sm" animation="border" /> : 'حفظ البيانات'}
+            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
+              {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> حفظ البيانات</> )}
             </Button>
           </Form>
         </Card.Body>

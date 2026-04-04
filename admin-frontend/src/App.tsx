@@ -2,11 +2,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast'; // 👈 IMPORT ADDED
 
 // mail
 import Inbox from './pages/admin/Inbox';
-
-// import SecureQrView from './pages/SecureQrView'; 
 
 // Layouts
 import PublicLayout from './components/PublicLayout';
@@ -42,7 +41,6 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersManagement from './pages/admin/UsersManagement';
 import UserForm from './pages/admin/UserForm';
 import PublicNews from './pages/PublicNews';
-// 👇 استيراد صفحة مولد الـ QR هنا
 import QrGenerator from './pages/admin/QrGenerator';
 
 // ================= مكونات الحماية الذكية (Guards) ================= //
@@ -63,18 +61,35 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
+        {/* 👇 GLOBAL TOASTER ADDED HERE 👇 */}
+        <Toaster 
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#333',
+              color: '#fff',
+              fontFamily: 'Tajawal, sans-serif',
+              fontWeight: 'bold',
+            },
+            success: {
+              style: {
+                background: '#198754',
+              },
+            },
+            error: {
+              style: {
+                background: '#dc3545',
+              },
+            },
+          }} 
+        />
+        
         <Routes>
-          {/* ================= مسارات مستقلة (خارج التخطيطات) ================= */}
-          {/* مسار فك الـ QR Code السري للزوار (يفضل أن يكون بدون الهيدر العادي) */}
-
           {/* ================= الموقع العام (متاح للجميع) ================= */}
-          {/* ================= الموقع العام (متاح للجميع) ================= */}
-{/* ================= الموقع العام (متاح للجميع) ================= */}
-<Route element={<PublicLayout />}>
-            {/* <Route path="/qr/:token" element={<SecureQrView />} /> */}
-
+          <Route element={<PublicLayout />}>
             <Route path="/" element={<PublicHome />} />
-            <Route path="/news" element={<PublicNews />} /> {/* 👈 أضف هذا السطر فقط */}
+            <Route path="/news" element={<PublicNews />} />
             <Route path="/page/:slug" element={<DynamicPage />} />
             <Route path="/jobs" element={<RedirectToJobs />} />
             <Route path="/job-applications" element={<RedirectToJobs />} />
@@ -90,10 +105,8 @@ export default function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               
-              {/* البريد الوارد */}
               <Route path="inbox" element={<Inbox />} />  
               
-              {/* إدارة المستخدمين */}
               <Route path="users" element={<UsersManagement />} />
               <Route path="users/create" element={<UserForm />} />
               <Route path="users/edit/:id" element={<UserForm />} />
@@ -130,7 +143,6 @@ export default function App() {
               <Route path="pages/create" element={<PageForm />} />
               <Route path="pages/edit/:id" element={<PageForm />} />
 
-              {/* 👇 مسار صفحة مولد الـ QR داخل لوحة التحكم */}
               <Route path="qr-generator" element={<QrGenerator />} />
             </Route>
           </Route>

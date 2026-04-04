@@ -1,13 +1,13 @@
-// src/pages/admin/ExhibitionForm.tsx
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
+import toast from 'react-hot-toast';
 
 const exhibitionSchema = z.object({
   title: z.string().min(3, "عنوان الفعالية مطلوب"),
@@ -24,7 +24,6 @@ export default function ExhibitionForm() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState({ text: "", variant: "" });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -47,7 +46,10 @@ export default function ExhibitionForm() {
             const item = res.data.find((e: any) => e.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => console.error(err))
+          .catch(err => {
+            console.error(err);
+            toast.error("فشل في تحميل البيانات");
+          })
           .finally(() => setIsLoading(false));
       }
     }
@@ -68,7 +70,9 @@ export default function ExhibitionForm() {
   };
 
   const onSubmit = async (data: FormValues) => {
-    setIsSubmitting(true); setMessage({ text: "", variant: "" });
+    setIsSubmitting(true);
+    const toastId = toast.loading('جاري التوثيق...');
+
     try {
       const formData = new FormData();
       formData.append('title', data.title);
@@ -80,13 +84,17 @@ export default function ExhibitionForm() {
 
       if (id) {
         await axiosInstance.put(`/exhibitions/${id}`, formData, config);
-        setMessage({ text: "تم تحديث البيانات بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم تحديث البيانات بنجاح!", { id: toastId });
       } else {
         await axiosInstance.post("/exhibitions", formData, config);
-        setMessage({ text: "تم توثيق الفعالية بنجاح! جاري العودة...", variant: "success" });
+        toast.success("تم توثيق الفعالية بنجاح!", { id: toastId });
       }
-      setTimeout(() => { navigate('/admin/exhibitions'); }, 2000);
-    } catch (error) { setMessage({ text: "حدث خطأ.", variant: "danger" }); } finally { setIsSubmitting(false); }
+      navigate('/admin/exhibitions');
+    } catch (error) { 
+        toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
+    } finally { 
+        setIsSubmitting(false); 
+    }
   };
 
   if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
@@ -102,8 +110,6 @@ export default function ExhibitionForm() {
             </h4>
             <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/exhibitions')}>عودة للقائمة</Button>
           </div>
-          
-          {message.text && <Alert variant={message.variant} className="fw-bold shadow-sm">{message.text}</Alert>}
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">

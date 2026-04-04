@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -14,6 +14,18 @@ export class PagesService {
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  // 👇 This is the method the compiler is looking for!
+  async findBySlug(slug: string) {
+    const page = await this.prisma.page.findUnique({
+      where: { slug },
+    });
+    
+    if (!page || !page.isActive) {
+        throw new NotFoundException(`Page with slug '${slug}' not found or inactive`);
+    }
+    return page;
   }
 
   update(id: string, data: any) {

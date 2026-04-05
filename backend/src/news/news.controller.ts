@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UploadedFiles, UseInterceptors, Put, Param, Get, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UploadedFiles, UseInterceptors, Put, Param, Get, Delete, UseGuards, Query } from '@nestjs/common';
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -6,6 +6,16 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
+
+  @Get()
+  findAll(@Query('search') search?: string, @Query('status') status?: string) {
+    return this.newsService.findAll({ search, status });
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.newsService.findOne(id);
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -25,13 +35,9 @@ export class NewsController {
     return this.newsService.update(id, body, mainImage, gallery);
   }
 
-  @Get()
-  findAll() { return this.newsService.findAll(); }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) { return this.newsService.findOne(id); }
-
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  remove(@Param('id') id: string) { return this.newsService.remove(id); }
+  remove(@Param('id') id: string) {
+    return this.newsService.remove(id);
+  }
 }

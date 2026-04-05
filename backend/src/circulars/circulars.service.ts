@@ -1,30 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateCircularDto } from './dto/create-circular.dto';
+import { UpdateCircularDto } from './dto/update-circular.dto';
 
 @Injectable()
 export class CircularsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
-    return this.prisma.circular.create({ data });
+  async create(data: CreateCircularDto) {
+    return (this.prisma.circular as any).create({
+      data: {
+        ...data,
+        isActive: data.isActive ?? true,
+      },
+    });
   }
 
-  findAll() {
-    return this.prisma.circular.findMany({
+  async findAll() {
+    return (this.prisma.circular as any).findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.circular.update({ 
-      where: { id }, 
-      data 
+  async findOne(id: string) {
+    const item = await (this.prisma.circular as any).findFirst({
+      where: { id, isActive: true },
+    });
+    if (!item) throw new NotFoundException('التعميم غير موجود');
+    return item;
+  }
+
+  async update(id: string, data: UpdateCircularDto) {
+    await this.findOne(id);
+    return (this.prisma.circular as any).update({
+      where: { id },
+      data,
     });
   }
 
-  remove(id: string) {
-    return this.prisma.circular.update({
+  async remove(id: string) {
+    await this.findOne(id);
+    return (this.prisma.circular as any).update({
       where: { id },
       data: { isActive: false },
     });

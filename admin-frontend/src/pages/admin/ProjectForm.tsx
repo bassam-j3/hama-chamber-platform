@@ -29,7 +29,6 @@ export default function ProjectForm() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<'image' | 'video'>('image');
 
-  // Gallery State (Phase 2)
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -53,7 +52,7 @@ export default function ProjectForm() {
             const item = res.data.find((p: any) => p.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => {
+          .catch(() => { // تم حذف err غير المستخدم هنا لحل الخطأ 6133
             toast.error("فشل في تحميل بيانات المشروع");
           })
           .finally(() => setIsLoading(false));
@@ -79,7 +78,6 @@ export default function ProjectForm() {
     }
   };
 
-  // Gallery Handlers
   const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -123,6 +121,7 @@ export default function ProjectForm() {
       }
       navigate('/admin/projects');
     } catch (error) { 
+        console.error(error);
       toast.error('حدث خطأ أثناء الحفظ.', { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
@@ -155,7 +154,6 @@ export default function ProjectForm() {
               </div>
             </Form.Group>
 
-            {/* Cover Section */}
             <Form.Group className="mb-5 pt-4 border-top text-center">
               <Form.Label className="fw-bold d-block mb-3">غلاف المشروع الرئيسي (صورة أو فيديو)</Form.Label>
               <input type="file" accept="image/*,video/*" id="project-main" className="d-none" onChange={handleFileChange} />
@@ -166,7 +164,6 @@ export default function ProjectForm() {
               </label>
             </Form.Group>
 
-            {/* Gallery Section */}
             <Card className="bg-light border-0 rounded-4 mb-5">
               <Card.Body className="p-4">
                 <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">

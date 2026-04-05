@@ -7,7 +7,7 @@ export class NewsService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any, mainImage?: Express.Multer.File, galleryImages?: Express.Multer.File[]) {
-    let imageUrl = null;
+    let imageUrl = data.imageUrl || null;
     const images: string[] = [];
 
     if (mainImage) {
@@ -22,23 +22,49 @@ export class NewsService {
       }
     }
 
-    return this.prisma.news.create({
+    return (this.prisma.news as any).create({
       data: {
         title: data.title,
         content: data.content,
-        isActive: data.isActive === 'true' || data.isActive === true,
         imageUrl,
-        images
-      }
+        images,
+        isActive: data.isActive === 'true' || data.isActive === true,
+      },
     });
   }
 
+  async findAll(query?: { search?: string; status?: string }) {
+    const { search, status } = query || {};
+    
+    return (this.prisma.news as any).findMany({
+      where: {
+        // الفلترة الأساسية: لا نعرض المحذوف ناعماً إلا إذا طلبنا ذلك (افتراضياً isActive: true)
+        isActive: status === 'inactive' ? false : status === 'active' ? true : true,
+        AND: search ? [
+          {
+            OR: [
+              { title: { contains: search, mode: 'insensitive' } },
+              { content: { contains: search, mode: 'insensitive' } },
+            ],
+          },
+        ] : [],
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findOne(id: string) {
+    const news = await (this.prisma.news as any).findFirst({
+      where: { id, isActive: true },
+    });
+    if (!news) throw new NotFoundException('الخبر غير موجود أو تم حذفه');
+    return news;
+  }
+
   async update(id: string, data: any, mainImage?: Express.Multer.File, galleryImages?: Express.Multer.File[]) {
-    const existing = await this.prisma.news.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('الخبر غير موجود');
+    const existing = await this.findOne(id);
 
     let imageUrl = existing.imageUrl;
-    // إذا أرسل الفرونت إند مصفوفة الصور المتبقية (بعد الحذف) نقوم بتحديثها
     let images = data.remainingImages ? JSON.parse(data.remainingImages) : [...existing.images];
 
     if (mainImage) {
@@ -53,15 +79,23 @@ export class NewsService {
       }
     }
 
-    return this.prisma.news.update({
+    return (this.prisma.news as any).update({
       where: { id },
       data: {
         title: data.title,
         content: data.content,
-        isActive: data.isActive === 'true' || data.isActive === true,
         imageUrl,
-        images
-      }
+        images,
+        isActive: data.isActive === 'true' || data.isActive === true,
+      },
+    });
+  }
+
+  async remove(id: string) {
+    await this.findOne(id);
+    return (this.prisma.news as any).update({
+      where: { id },
+      data: { isActive: false },
     });
   }
 
@@ -73,8 +107,4 @@ export class NewsService {
       }).end(file.buffer);
     });
   }
-
-  findAll() { return this.prisma.news.findMany({ orderBy: { createdAt: 'desc' } }); }
-  findOne(id: string) { return this.prisma.news.findUnique({ where: { id } }); }
-  remove(id: string) { return this.prisma.news.delete({ where: { id } }); }
 }

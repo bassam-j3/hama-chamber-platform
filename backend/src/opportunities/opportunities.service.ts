@@ -1,30 +1,47 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateOpportunityDto } from './dto/create-opportunity.dto';
+import { UpdateOpportunityDto } from './dto/update-opportunity.dto';
 
 @Injectable()
 export class OpportunitiesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
-    return this.prisma.opportunity.create({ data });
+  async create(data: CreateOpportunityDto) {
+    return (this.prisma.opportunity as any).create({
+      data: {
+        ...data,
+        isActive: data.isActive ?? true,
+      },
+    });
   }
 
-  findAll() {
-    return this.prisma.opportunity.findMany({
+  async findAll() {
+    return (this.prisma.opportunity as any).findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.opportunity.update({ 
-      where: { id }, 
-      data 
+  async findOne(id: string) {
+    const item = await (this.prisma.opportunity as any).findFirst({
+      where: { id, isActive: true },
+    });
+    if (!item) throw new NotFoundException('الفرصة غير موجودة');
+    return item;
+  }
+
+  async update(id: string, data: UpdateOpportunityDto) {
+    await this.findOne(id);
+    return (this.prisma.opportunity as any).update({
+      where: { id },
+      data,
     });
   }
 
-  remove(id: string) {
-    return this.prisma.opportunity.update({
+  async remove(id: string) {
+    await this.findOne(id);
+    return (this.prisma.opportunity as any).update({
       where: { id },
       data: { isActive: false },
     });

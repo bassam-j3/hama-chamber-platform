@@ -1,29 +1,46 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateBoardMemberDto } from './dto/create-board-member.dto';
+import { UpdateBoardMemberDto } from './dto/update-board-member.dto';
 
 @Injectable()
 export class BoardMembersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
-    return this.prisma.boardMember.create({ data });
+  async create(createBoardMemberDto: CreateBoardMemberDto) {
+    return this.prisma.boardMember.create({
+      data: createBoardMemberDto,
+    });
   }
 
-  findAll() {
+  async findAll() {
     return this.prisma.boardMember.findMany({
       where: { isActive: true },
-      orderBy: { createdAt: 'asc' }, // ملاحظة: الترتيب هنا تصاعدي حسب طلبك المسبق
+      orderBy: { createdAt: 'asc' }, // عادة ترتيب المجلس يكون تصاعدياً حسب الأهمية
     });
   }
 
-  update(id: string, data: any) {
-    return this.prisma.boardMember.update({ 
-      where: { id }, 
-      data 
+  async findOne(id: string) {
+    const member = await this.prisma.boardMember.findFirst({
+      where: { id, isActive: true },
+    });
+
+    if (!member) {
+      throw new NotFoundException(`عضو المجلس غير موجود`);
+    }
+    return member;
+  }
+
+  async update(id: string, updateBoardMemberDto: UpdateBoardMemberDto) {
+    await this.findOne(id);
+    return this.prisma.boardMember.update({
+      where: { id },
+      data: updateBoardMemberDto,
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    await this.findOne(id);
     return this.prisma.boardMember.update({
       where: { id },
       data: { isActive: false },

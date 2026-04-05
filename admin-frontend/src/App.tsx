@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { Toaster } from 'react-hot-toast'; // 👈 IMPORT ADDED
+import { Toaster } from 'react-hot-toast'; 
 
 // mail
 import Inbox from './pages/admin/Inbox';
@@ -21,8 +21,11 @@ import ResetPassword from './pages/ResetPassword';
 
 // Admin Pages
 import BoardMembers from './pages/admin/BoardMembers';
+import BoardMemberForm from './pages/admin/BoardMemberForm'; // 👈 استيراد مكون النموذج
 import CircularsManagement from './pages/admin/CircularsManagement';
+import CircularForm from './pages/admin/CircularForm'; // 👈 استيراد نموذج التعاميم (يبدو ناقصاً أيضاً)
 import LawsManagement from './pages/admin/LawsManagement';
+import LawForm from './pages/admin/LawForm'; // 👈 استيراد نموذج القوانين (يبدو ناقصاً أيضاً)
 import NewsManagement from './pages/admin/NewsManagement';
 import NewsForm from './pages/admin/NewsForm';
 import ProjectsManagement from './pages/admin/ProjectsManagement';
@@ -111,9 +114,19 @@ export default function App() {
               <Route path="users/create" element={<UserForm />} />
               <Route path="users/edit/:id" element={<UserForm />} />
               
+              {/* 👇 المسارات التي تمت إضافتها 👇 */}
               <Route path="board-members" element={<BoardMembers />} />
+              <Route path="board-members/create" element={<BoardMemberForm />} />
+              <Route path="board-members/edit/:id" element={<BoardMemberForm />} />
+
               <Route path="circulars" element={<CircularsManagement />} />
+              <Route path="circulars/create" element={<CircularForm />} />
+              <Route path="circulars/edit/:id" element={<CircularForm />} />
+
               <Route path="laws" element={<LawsManagement />} />
+              <Route path="laws/create" element={<LawForm />} />
+              <Route path="laws/edit/:id" element={<LawForm />} />
+              {/* 👆 نهاية المسارات المضافة 👆 */}
               
               <Route path="news" element={<NewsManagement />} />
               <Route path="news/create" element={<NewsForm />} />

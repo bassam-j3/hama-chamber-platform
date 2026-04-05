@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner, Row, Col } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -25,8 +25,14 @@ export default function NewsForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Main Image State
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Gallery State (Phase 2)
+  const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
+  const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<NewsFormValues>({ 
     resolver: zodResolver(newsSchema), 
@@ -61,6 +67,7 @@ export default function NewsForm() {
     setValue("content", data.content);
     setValue("isActive", data.isActive);
     setPreviewUrl(data.imageUrl || null);
+    setExistingImages(data.images || []); // Load gallery from DB
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,16 +77,42 @@ export default function NewsForm() {
     }
   };
 
+  // Gallery Handlers
+  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setGalleryFiles(prev => [...prev, ...files]);
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setGalleryPreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeNewGalleryImage = (index: number) => {
+    setGalleryFiles(prev => prev.filter((_, i) => i !== index));
+    setGalleryPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingGalleryImage = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const onSubmit = async (data: NewsFormValues) => {
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري حفظ الخبر...');
+    const toastId = toast.loading('جاري حفظ الخبر والمعرض...');
     
     try {
       const formData = new FormData();
       formData.append('title', data.title);
       formData.append('content', data.content);
       formData.append('isActive', data.isActive.toString());
+      
       if (selectedFile) formData.append('image', selectedFile);
+
+      // Append new gallery files
+      galleryFiles.forEach(file => formData.append('gallery', file));
+      
+      // Send remaining existing images (for deletion sync)
+      formData.append('remainingImages', JSON.stringify(existingImages));
 
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
 
@@ -92,7 +125,6 @@ export default function NewsForm() {
       }
       
       navigate('/admin/news');
-      
     } catch (error) { 
       toast.error("حدث خطأ أثناء حفظ الخبر.", { id: toastId }); 
     } finally { 
@@ -103,7 +135,7 @@ export default function NewsForm() {
   if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
 
   return (
-    <Container fluid className="max-w-75">
+    <Container fluid className="max-w-75 mb-5">
       <Card className="shadow-sm border-0 rounded-4">
         <Card.Body className="p-5">
           <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
@@ -111,55 +143,65 @@ export default function NewsForm() {
               <span className="material-symbols-outlined">{id ? 'edit_document' : 'post_add'}</span>
               {id ? 'تعديل الخبر' : 'إضافة خبر جديد'}
             </h4>
-            <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/news')}>
-              عودة للقائمة
-            </Button>
+            <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/news')}>عودة</Button>
           </div>
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
-              <Form.Label className="fw-bold text-dark">عنوان الخبر</Form.Label>
-              <Form.Control type="text" placeholder="اكتب عنواناً جذاباً للخبر..." isInvalid={!!errors.title} {...register("title")} className="py-2" />
+              <Form.Label className="fw-bold">عنوان الخبر</Form.Label>
+              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
-              <Form.Label className="fw-bold text-dark">تفاصيل الخبر</Form.Label>
+              <Form.Label className="fw-bold">تفاصيل الخبر</Form.Label>
               <div style={{ direction: 'rtl' }}>
                 {/* @ts-ignore */}
-                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} placeholder="اكتب التفاصيل هنا، يمكنك استخدام التنسيقات وإضافة القوائم..."/>
+                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val)} style={{ height: '300px' }} />
               </div>
-              {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
             </Form.Group>
 
-            <Form.Group className="mb-4 pt-3 border-top">
-              <Form.Label className="fw-bold text-dark">حالة النشر</Form.Label>
-              <Form.Check type="switch" id="news-active-switch" label="نشر فوراً ليعرض في شريط الأخبار والموقع العام" {...register("isActive")} className="fw-bold text-primary fs-5" />
-            </Form.Group>
-
-            <Form.Group className="mb-5 text-center">
-              <Form.Label className="fw-bold text-dark d-block mb-3">صورة الخبر الرئيسية</Form.Label>
-              <input type="file" accept="image/*" id="news-upload" className="d-none" onChange={handleFileChange} />
-              <label htmlFor="news-upload" className="d-flex flex-column align-items-center justify-content-center border border-2 border-primary rounded-4 p-4 mx-auto transition-hover" style={{ maxWidth: '500px', cursor: 'pointer', backgroundColor: '#f8f9fa', borderStyle: 'dashed !important' }}>
-                {previewUrl ? (
-                  <div className="position-relative w-100">
-                    <img src={previewUrl} alt="Preview" className="rounded-3 shadow-sm border border-white border-3 w-100" style={{ maxHeight: '250px', objectFit: 'contain' }} />
-                    <div className="mt-3 text-primary fw-bold d-flex align-items-center justify-content-center gap-1"><span className="material-symbols-outlined fs-5">edit</span> تغيير الصورة</div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mb-3 shadow-sm" style={{ width: '80px', height: '80px' }}>
-                      <span className="material-symbols-outlined fs-1">add_photo_alternate</span>
-                    </div>
-                    <h6 className="fw-bold text-dark mb-1">اضغط لاختيار صورة للخبر</h6>
-                    <small className="text-muted">يفضل استخدام صور أفقية عالية الجودة</small>
-                  </>
-                )}
+            {/* Main Image Section */}
+            <Form.Group className="mb-5 pt-4 border-top text-center">
+              <Form.Label className="fw-bold d-block mb-3">الصورة الرئيسية للخبر</Form.Label>
+              <input type="file" accept="image/*" id="main-upload" className="d-none" onChange={handleFileChange} />
+              <label htmlFor="main-upload" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer" style={{ borderStyle: 'dashed' }}>
+                {previewUrl ? <img src={previewUrl} className="rounded-3" style={{ maxHeight: '150px' }} /> : <div className="p-4 text-muted">اضغط لاختيار صورة الغلاف</div>}
               </label>
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
-              {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ والرفع...</> ) : ( <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات' : 'نشر الخبر'}</> )}
+            {/* Gallery Section (Phase 2) */}
+            <Card className="bg-light border-0 rounded-4 mb-5">
+              <Card.Body className="p-4">
+                <h6 className="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined">collections</span> معرض صور إضافي (اختياري)
+                </h6>
+                <input type="file" multiple accept="image/*" id="gallery-upload" className="d-none" onChange={handleGalleryChange} />
+                <label htmlFor="gallery-upload" className="btn btn-outline-primary btn-sm fw-bold mb-3">إضافة صور للمعرض</label>
+                
+                <Row className="g-2">
+                  {existingImages.map((url, idx) => (
+                    <Col key={`ex-${idx}`} xs={4} md={2} className="position-relative">
+                      <img src={url} className="w-100 rounded shadow-sm object-fit-cover" style={{ height: '80px' }} />
+                      <button type="button" onClick={() => removeExistingGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
+                    </Col>
+                  ))}
+                  {galleryPreviews.map((url, idx) => (
+                    <Col key={`new-${idx}`} xs={4} md={2} className="position-relative">
+                      <img src={url} className="w-100 rounded shadow-sm border border-primary object-fit-cover" style={{ height: '80px' }} />
+                      <button type="button" onClick={() => removeNewGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
+                    </Col>
+                  ))}
+                </Row>
+              </Card.Body>
+            </Card>
+
+            <Form.Group className="mb-4">
+              <Form.Check type="switch" label="نشر فوراً" {...register("isActive")} className="fw-bold" />
+            </Form.Group>
+
+            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
+              {isSubmitting ? <Spinner size="sm" animation="border" /> : <><span className="material-symbols-outlined">save</span> حفظ الخبر</>}
             </Button>
           </Form>
         </Card.Body>

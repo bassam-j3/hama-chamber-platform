@@ -29,12 +29,11 @@ model Project {
   id        String   @id @default(uuid())
   title     String
   content   String
-  imageUrl  String?
+  imageUrl  String?  
+  images    String[] @default([]) // 👈 موجودة مسبقاً وسنفعّلها برمجياً
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@index([isActive])
 }
 
 model Circular {
@@ -68,6 +67,7 @@ model News {
   title     String
   content   String
   imageUrl  String?
+  images    String[] @default([]) // 👈 أضفنا هذا السطر هنا لدعم المعرض في الأخبار
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

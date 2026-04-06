@@ -14,10 +14,12 @@ import { LawsModule } from './laws/laws.module';
 import { CircularsModule } from './circulars/circulars.module';
 // 👇 أضف هذا الاستيراد 👇
 import { BoardMembersModule } from './board-members/board-members.module'; 
+import { CloudinaryModule } from './cloudinary/cloudinary.module'; // 👈 استيراد كلاوديناري
 
 @Module({
   imports: [
     PrismaModule,
+    CloudinaryModule, // 👈 إضافته هنا (في البداية يفضل)
     AuthModule,
     UsersModule,
     DashboardModule,
@@ -30,7 +32,7 @@ import { BoardMembersModule } from './board-members/board-members.module';
     NewsModule,
     LawsModule,
     CircularsModule,
-    BoardMembersModule, // 👈 وأضفه هنا ليتعرف عليه السيرفر
+    BoardMembersModule,
   ],
 })
 export class AppModule {}

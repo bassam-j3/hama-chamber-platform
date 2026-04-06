@@ -8,7 +8,6 @@ import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
-  // 1. Strict Environment Validation (Fail-Safe)
   const requiredEnvVars = [
     'DATABASE_URL',
     'JWT_SECRET',
@@ -21,18 +20,15 @@ async function bootstrap() {
   if (missingVars.length > 0) {
     logger.error(`❌ CRITICAL: Missing required environment variables: ${missingVars.join(', ')}`);
     logger.error('🛑 The application will refuse to boot until these are provided.');
-    process.exit(1); // Kill the process immediately
+    process.exit(1); 
   }
 
   const app = await NestFactory.create(AppModule);
 
-  // 👇 السطر السحري الذي كان مفقوداً وتمت إضافته لحل الـ 404 👇
-  app.setGlobalPrefix('api/v1');
+  // تم إزالة app.setGlobalPrefix('api/v1'); من هنا لمنع التكرار
 
-  // حماية الـ Headers
   app.use(helmet());
   
-  // إعدادات الـ CORS الآمنة (الآن نضمن وجود FRONTEND_URL بفضل التحقق أعلاه)
   const allowedOrigins = process.env.FRONTEND_URL!.split(',');
 
   app.enableCors({
@@ -41,7 +37,6 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // التحقق الصارم من البيانات
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -50,10 +45,7 @@ async function bootstrap() {
     }),
   );
 
-  // تفعيل توحيد الردود الناجحة
   app.useGlobalInterceptors(new ResponseInterceptor());
-
-  // تفعيل توحيد الأخطاء
   app.useGlobalFilters(new AllExceptionsFilter());
 
   const port = process.env.PORT || 3000;

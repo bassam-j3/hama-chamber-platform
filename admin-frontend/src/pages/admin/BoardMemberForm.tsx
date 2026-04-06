@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import axiosInstance from "../../api/axiosInstance";
-import { Container, Card, Form, Button, Spinner } from 'react-bootstrap';
+import { Container, Card, Form, Button, Spinner, Row, Col } from 'react-bootstrap';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -32,7 +32,8 @@ export default function BoardMemberForm() {
 
   useEffect(() => {
     if (id) {
-      const stateItem = location.state?.item;
+      // 🔴 الخطأ كان هنا: تم تغييره من item إلى memberItem ليطابق زر التعديل
+      const stateItem = location.state?.memberItem; 
       if (stateItem) {
         populateForm(stateItem);
       } else {
@@ -83,30 +84,47 @@ export default function BoardMemberForm() {
     <Container fluid className="max-w-75 mb-5">
       <Card className="shadow-sm border-0 rounded-4">
         <Card.Body className="p-5">
-          <div className="d-flex justify-content-between mb-4">
-            <h4 className="text-primary fw-bold">{id ? 'تعديل العضو' : 'إضافة عضو جديد'}</h4>
-            <Button variant="light" onClick={() => navigate('/admin/board-members')}>عودة</Button>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h4 className="text-primary fw-bold mb-0">{id ? 'تعديل العضو' : 'إضافة عضو جديد'}</h4>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/board-members')}>عودة</Button>
           </div>
           <Form onSubmit={handleSubmit(onSubmit)}>
-            <Form.Group className="mb-3">
-              <Form.Label>الاسم الثلاثي</Form.Label>
-              <Form.Control isInvalid={!!errors.name} {...register("name")} />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>المسمى الوظيفي (مثال: رئيس المجلس)</Form.Label>
-              <Form.Control isInvalid={!!errors.roleTitle} {...register("roleTitle")} />
-            </Form.Group>
-            <Form.Group className="mb-4">
-              <Form.Label>الصورة الشخصية</Form.Label>
-              <Form.Control type="file" accept="image/*" onChange={(e: any) => {
+            <Row>
+              <Col md={6}>
+                <Form.Group className="mb-4">
+                  <Form.Label className="fw-bold">الاسم الثلاثي</Form.Label>
+                  <Form.Control className="py-2" isInvalid={!!errors.name} {...register("name")} />
+                  <Form.Control.Feedback type="invalid">{errors.name?.message}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group className="mb-4">
+                  <Form.Label className="fw-bold">المسمى الوظيفي (مثال: رئيس المجلس)</Form.Label>
+                  <Form.Control className="py-2" isInvalid={!!errors.roleTitle} {...register("roleTitle")} />
+                  <Form.Control.Feedback type="invalid">{errors.roleTitle?.message}</Form.Control.Feedback>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-5 text-center p-4 bg-light rounded-4 border" style={{ borderStyle: 'dashed' }}>
+              <Form.Label className="fw-bold d-block mb-3">الصورة الشخصية</Form.Label>
+              <input type="file" accept="image/*" id="member-image" className="d-none" onChange={(e: any) => {
                 const file = e.target.files[0];
                 if (file) { setSelectedFile(file); setPreviewUrl(URL.createObjectURL(file)); }
               }} />
-              {previewUrl && <img src={previewUrl} className="mt-3 rounded" style={{ height: '100px' }} />}
+              <label htmlFor="member-image" className="cursor-pointer">
+                {previewUrl ? (
+                   <img src={previewUrl} className="rounded-circle object-fit-cover shadow-sm border border-4 border-white" style={{ width: '120px', height: '120px' }} />
+                ) : (
+                  <div className="btn btn-outline-primary rounded-pill px-4 fw-bold">اختر صورة من جهازك</div>
+                )}
+              </label>
             </Form.Group>
-            <Form.Check type="switch" label="عضو نشط" {...register("isActive")} className="mb-4 fw-bold" />
-            <Button variant="primary" type="submit" disabled={isSubmitting} className="w-100">
-              {isSubmitting ? <Spinner size="sm" /> : 'حفظ البيانات'}
+
+            <Form.Check type="switch" label="عضو نشط (يظهر في الموقع)" {...register("isActive")} className="mb-4 fw-bold fs-5" />
+            
+            <Button variant="primary" type="submit" disabled={isSubmitting} className="w-100 py-3 fw-bold rounded-pill shadow-sm fs-5">
+              {isSubmitting ? <Spinner size="sm" animation="border" /> : 'حفظ البيانات'}
             </Button>
           </Form>
         </Card.Body>

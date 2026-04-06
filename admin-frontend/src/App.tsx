@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -21,11 +20,11 @@ import ResetPassword from './pages/ResetPassword';
 
 // Admin Pages
 import BoardMembers from './pages/admin/BoardMembers';
-import BoardMemberForm from './pages/admin/BoardMemberForm'; // 👈 استيراد مكون النموذج
+import BoardMemberForm from './pages/admin/BoardMemberForm'; 
 import CircularsManagement from './pages/admin/CircularsManagement';
-import CircularForm from './pages/admin/CircularForm'; // 👈 استيراد نموذج التعاميم (يبدو ناقصاً أيضاً)
+import CircularForm from './pages/admin/CircularForm'; 
 import LawsManagement from './pages/admin/LawsManagement';
-import LawForm from './pages/admin/LawForm'; // 👈 استيراد نموذج القوانين (يبدو ناقصاً أيضاً)
+import LawForm from './pages/admin/LawForm'; 
 import NewsManagement from './pages/admin/NewsManagement';
 import NewsForm from './pages/admin/NewsForm';
 import ProjectsManagement from './pages/admin/ProjectsManagement';
@@ -64,7 +63,7 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        {/* 👇 GLOBAL TOASTER ADDED HERE 👇 */}
+        {/* 👇 GLOBAL TOASTER 👇 */}
         <Toaster 
           position="top-center"
           toastOptions={{
@@ -114,19 +113,20 @@ export default function App() {
               <Route path="users/create" element={<UserForm />} />
               <Route path="users/edit/:id" element={<UserForm />} />
               
-              {/* 👇 المسارات التي تمت إضافتها 👇 */}
+              {/* مسارات أعضاء المجلس */}
               <Route path="board-members" element={<BoardMembers />} />
               <Route path="board-members/create" element={<BoardMemberForm />} />
               <Route path="board-members/edit/:id" element={<BoardMemberForm />} />
 
+              {/* مسارات التعاميم */}
               <Route path="circulars" element={<CircularsManagement />} />
               <Route path="circulars/create" element={<CircularForm />} />
               <Route path="circulars/edit/:id" element={<CircularForm />} />
 
+              {/* مسارات القوانين */}
               <Route path="laws" element={<LawsManagement />} />
               <Route path="laws/create" element={<LawForm />} />
               <Route path="laws/edit/:id" element={<LawForm />} />
-              {/* 👆 نهاية المسارات المضافة 👆 */}
               
               <Route path="news" element={<NewsManagement />} />
               <Route path="news/create" element={<NewsForm />} />

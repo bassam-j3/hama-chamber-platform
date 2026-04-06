@@ -26,6 +26,9 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
+  // 👇 السطر السحري الذي كان مفقوداً وتمت إضافته لحل الـ 404 👇
+  app.setGlobalPrefix('api/v1');
+
   // حماية الـ Headers
   app.use(helmet());
   

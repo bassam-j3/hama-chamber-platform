@@ -11,14 +11,13 @@ export class ProjectsService {
     const images: string[] = [];
 
     if (mainFile) {
-      const type = mainFile.mimetype.startsWith('video') ? 'video' : 'image';
-      const upload = await this.uploadToCloudinary(mainFile, type);
+      const upload = await this.uploadToCloudinary(mainFile);
       imageUrl = upload.secure_url;
     }
 
     if (galleryImages) {
       for (const file of galleryImages) {
-        const upload = await this.uploadToCloudinary(file, 'image');
+        const upload = await this.uploadToCloudinary(file);
         images.push(upload.secure_url);
       }
     }
@@ -42,14 +41,13 @@ export class ProjectsService {
     let images = data.remainingImages ? JSON.parse(data.remainingImages) : [...existing.images];
 
     if (mainFile) {
-      const type = mainFile.mimetype.startsWith('video') ? 'video' : 'image';
-      const upload = await this.uploadToCloudinary(mainFile, type);
+      const upload = await this.uploadToCloudinary(mainFile);
       imageUrl = upload.secure_url;
     }
 
     if (galleryImages) {
       for (const file of galleryImages) {
-        const upload = await this.uploadToCloudinary(file, 'image');
+        const upload = await this.uploadToCloudinary(file);
         images.push(upload.secure_url);
       }
     }
@@ -66,16 +64,33 @@ export class ProjectsService {
     });
   }
 
-  private async uploadToCloudinary(file: Express.Multer.File, type: 'image' | 'video'): Promise<any> {
+  private async uploadToCloudinary(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({ folder: 'hama-chamber/projects', resource_type: type }, (error, result) => {
+      cloudinary.uploader.upload_stream({ folder: 'hama-chamber/projects' }, (error, result) => {
         if (error) return reject(error);
         resolve(result);
       }).end(file.buffer);
     });
   }
 
-  findAll() { return this.prisma.project.findMany({ orderBy: { createdAt: 'desc' } }); }
-  findOne(id: string) { return this.prisma.project.findUnique({ where: { id } }); }
-  remove(id: string) { return this.prisma.project.delete({ where: { id } }); }
+  // ✅ التعديل المطلوب لـ Phase 1: Soft Delete & Active Only
+  findAll() { 
+    return this.prisma.project.findMany({ 
+      where: { isActive: true }, // جلب المشاريع النشطة فقط
+      orderBy: { createdAt: 'desc' } 
+    }); 
+  }
+
+  findOne(id: string) { 
+    return this.prisma.project.findFirst({ 
+      where: { id, isActive: true } 
+    }); 
+  }
+
+  remove(id: string) { 
+    return this.prisma.project.update({ // تحويل الحذف الحقيقي إلى Soft Delete
+      where: { id },
+      data: { isActive: false }
+    }); 
+  }
 }

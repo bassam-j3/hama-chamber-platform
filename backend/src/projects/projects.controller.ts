@@ -1,37 +1,21 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFiles, UploadedFile, UseGuards } from '@nestjs/common';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ProjectsService } from './projects.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('projects')
 export class ProjectsController {
-  constructor(
-    private readonly projectsService: ProjectsService,
-    private readonly cloudinaryService: CloudinaryService
-  ) {}
+  constructor(private readonly projectsService: ProjectsService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
-  async create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
-    let imageUrl = undefined;
-
-    if (file) {
-      // 👈 رفع الصورة لمجلد projects في السحابة
-      const uploadResult = await this.cloudinaryService.uploadImage(file, 'projects');
-      imageUrl = uploadResult.secure_url;
-    }
-
-    const dto = { 
-      title: body.title, 
-      description: body.description, 
-      status: body.status,
-      imageUrl: imageUrl 
-    };
-    
-    return this.projectsService.create(dto);
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'image', maxCount: 1 },
+    { name: 'gallery', maxCount: 10 }
+  ], { storage: memoryStorage() }))
+  async create(@Body() body: any, @UploadedFiles() files: { image?: Express.Multer.File[], gallery?: Express.Multer.File[] }) {
+    return this.projectsService.create(body, files.image?.[0], files.gallery);
   }
 
   @Get() 
@@ -41,20 +25,16 @@ export class ProjectsController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
-  async update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
-    const dto: any = { 
-      title: body.title, 
-      description: body.description,
-      status: body.status
-    };
-
-    if (file) {
-      const uploadResult = await this.cloudinaryService.uploadImage(file, 'projects');
-      dto.imageUrl = uploadResult.secure_url;
-    }
-
-    return this.projectsService.update(id, dto);
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'image', maxCount: 1 },
+    { name: 'gallery', maxCount: 10 }
+  ], { storage: memoryStorage() }))
+  async update(
+    @Param('id') id: string, 
+    @Body() body: any, 
+    @UploadedFiles() files: { image?: Express.Multer.File[], gallery?: Express.Multer.File[] }
+  ) {
+    return this.projectsService.update(id, body, files.image?.[0], files.gallery);
   }
 
   @Delete(':id') 

@@ -12,14 +12,14 @@ import { ProjectsModule } from './projects/projects.module';
 import { NewsModule } from './news/news.module';
 import { LawsModule } from './laws/laws.module';
 import { CircularsModule } from './circulars/circulars.module';
-// 👇 أضف هذا الاستيراد 👇
 import { BoardMembersModule } from './board-members/board-members.module'; 
-import { CloudinaryModule } from './cloudinary/cloudinary.module'; // 👈 استيراد كلاوديناري
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { EmailsModule } from './emails/emails.module'; // 👈 أضف هذا السطر
 
 @Module({
   imports: [
     PrismaModule,
-    CloudinaryModule, // 👈 إضافته هنا (في البداية يفضل)
+    CloudinaryModule,
     AuthModule,
     UsersModule,
     DashboardModule,
@@ -33,6 +33,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module'; // 👈 اس�
     LawsModule,
     CircularsModule,
     BoardMembersModule,
+    EmailsModule, // 👈 وأضفه هنا
   ],
 })
 export class AppModule {}

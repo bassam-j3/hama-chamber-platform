@@ -5,7 +5,7 @@ import { ProjectsService } from './projects.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
-@Controller('api/v1/projects')
+@Controller('projects')
 export class ProjectsController {
   constructor(
     private readonly projectsService: ProjectsService,

@@ -5,7 +5,7 @@ import { BannersService } from './banners.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service'; // 👈 السحابة
 
-@Controller('api/v1/banners')
+@Controller('banners')
 export class BannersController {
   constructor(
     private readonly bannersService: BannersService,

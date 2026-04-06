@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nes
 import { FaqsService } from './faqs.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('api/v1/faqs')
+@Controller('faqs')
 export class FaqsController {
   constructor(private readonly faqsService: FaqsService) {}
 

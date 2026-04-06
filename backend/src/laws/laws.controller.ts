@@ -13,7 +13,7 @@ const storageOptions = diskStorage({
   }
 });
 
-@Controller('api/v1/laws')
+@Controller('laws')
 export class LawsController {
   constructor(private readonly lawsService: LawsService) {}
 

@@ -2,7 +2,7 @@ import { Controller, Get, Param, Put, Query, ParseIntPipe, Post, Body, UseInterc
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { EmailsService } from './emails.service';
 
-@Controller('api/v1/emails')
+@Controller('emails')
 export class EmailsController {
   constructor(private readonly emailsService: EmailsService) {}
 

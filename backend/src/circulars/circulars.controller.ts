@@ -5,7 +5,7 @@ import { CircularsService } from './circulars.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
-@Controller('api/v1/circulars')
+@Controller('circulars')
 export class CircularsController {
   constructor(
     private readonly circularsService: CircularsService,

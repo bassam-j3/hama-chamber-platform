@@ -5,7 +5,7 @@ import { ExhibitionsService } from './exhibitions.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
-@Controller('api/v1/exhibitions')
+@Controller('exhibitions')
 export class ExhibitionsController {
   constructor(
     private readonly exhibitionsService: ExhibitionsService,

@@ -5,7 +5,7 @@ import { OpportunitiesService } from './opportunities.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
-@Controller('api/v1/opportunities')
+@Controller('opportunities')
 export class OpportunitiesController {
   constructor(
     private readonly opportunitiesService: OpportunitiesService,

@@ -25,7 +25,8 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  // تم إزالة app.setGlobalPrefix('api/v1'); من هنا لمنع التكرار
+  // 👇 أعد هذه البادئة هنا، هذا هو مكانها الصحيح 👇
+  app.setGlobalPrefix('api/v1');
 
   app.use(helmet());
   

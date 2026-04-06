@@ -1,13 +1,11 @@
 import axios from 'axios';
 
+// قمنا بإزالة /api/v1 من هنا لأن الـ backend لم يعد يستخدمها
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hama-chamber-api.onrender.com/api/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000', 
+  withCredentials: true,
 });
 
-// Request Interceptor: Attach JWT Token automatically
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,23 +19,16 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Unwrap data & Handle 401 Expirations
 axiosInstance.interceptors.response.use(
   (response) => {
-    if (response.data && response.data.success === true && response.data.data !== undefined) {
-      response.data = response.data.data;
-    }
-    return response;
+    // إذا كان الرد ناجحاً ويحتوي على data، نرجعها مباشرة لتسهيل الاستخدام
+    return response.data?.data ? { ...response, data: response.data.data } : response;
   },
   (error) => {
-    // Handle Token Expiration
-    if (error.response && error.response.status === 401) {
+    if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Only redirect if not already on the login page to prevent loops
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }

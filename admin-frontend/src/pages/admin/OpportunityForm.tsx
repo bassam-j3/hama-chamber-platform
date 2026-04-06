@@ -48,7 +48,7 @@ export default function OpportunityForm() {
           })
           .catch(err => {
             console.error(err);
-            toast.error("فشل في تحميل البيانات");
+            toast.error("فشل في تحميل بيانات الفرصة");
           })
           .finally(() => setIsLoading(false));
       }
@@ -71,7 +71,7 @@ export default function OpportunityForm() {
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري حفظ الفرصة...');
+    const toastId = toast.loading(id ? 'جاري تحديث الفرصة...' : 'جاري نشر الفرصة...');
     
     try {
       const formData = new FormData();
@@ -89,7 +89,7 @@ export default function OpportunityForm() {
         await axiosInstance.post("/opportunities", formData, config);
         toast.success("تم النشر بنجاح!", { id: toastId });
       }
-      navigate('/admin/opportunities');
+      navigate('/admin/opportunities', { replace: true });
     } catch (error) { 
         toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
     } finally { 
@@ -97,7 +97,13 @@ export default function OpportunityForm() {
     }
   };
 
-  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
+  if (isLoading) {
+    return (
+      <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
 
   return (
     <Container fluid className="max-w-75">
@@ -108,13 +114,15 @@ export default function OpportunityForm() {
               <span className="material-symbols-outlined">{id ? 'edit_document' : 'handshake'}</span>
               {id ? 'تعديل الفرصة التجارية' : 'إضافة فرصة تجارية جديدة'}
             </h4>
-            <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/opportunities')}>عودة للقائمة</Button>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/opportunities')}>
+              عودة للقائمة
+            </Button>
           </div>
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">عنوان الفرصة</Form.Label>
-              <Form.Control type="text" placeholder="مثال: مناقصة توريد مواد أولية..." isInvalid={!!errors.title} {...register("title")} className="py-2" />
+              <Form.Control type="text" placeholder="مثال: مناقصة توريد مواد أولية..." isInvalid={!!errors.title} {...register("title")} className="py-2" disabled={isSubmitting} />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
@@ -122,19 +130,19 @@ export default function OpportunityForm() {
               <Form.Label className="fw-bold text-dark">تفاصيل وشروط الفرصة</Form.Label>
               <div style={{ direction: 'rtl' }}>
                 {/* @ts-ignore */}
-                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
+                <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
               </div>
               {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
             </Form.Group>
 
             <Form.Group className="mb-4 pt-3 border-top">
               <Form.Label className="fw-bold text-dark">حالة الفرصة</Form.Label>
-              <Form.Check type="switch" label="متاحة للتقديم (نشطة)" {...register("isActive")} className="fw-bold text-primary fs-5" />
+              <Form.Check type="switch" label="متاحة للتقديم (نشطة)" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
             </Form.Group>
 
             <Form.Group className="mb-5 text-center">
               <Form.Label className="fw-bold text-dark d-block mb-3">صورة مرفقة (اختياري)</Form.Label>
-              <input type="file" accept="image/*" id="opp-upload" className="d-none" onChange={handleFileChange} />
+              <input type="file" accept="image/*" id="opp-upload" className="d-none" onChange={handleFileChange} disabled={isSubmitting} />
               <label htmlFor="opp-upload" className="d-flex flex-column align-items-center justify-content-center border border-2 border-primary rounded-4 p-4 mx-auto transition-hover" style={{ maxWidth: '500px', cursor: 'pointer', backgroundColor: '#f8f9fa', borderStyle: 'dashed !important' }}>
                 {previewUrl ? (
                   <div className="position-relative w-100">
@@ -152,7 +160,7 @@ export default function OpportunityForm() {
               </label>
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
+            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2 rounded-pill" disabled={isSubmitting}>
               {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات' : 'نشر الفرصة'}</> )}
             </Button>
           </Form>

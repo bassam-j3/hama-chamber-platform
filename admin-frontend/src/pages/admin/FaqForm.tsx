@@ -60,7 +60,7 @@ export default function FaqForm() {
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري الحفظ...');
+    const toastId = toast.loading(id ? 'جاري تحديث السؤال...' : 'جاري إضافة السؤال...');
     try {
       if (id) {
         await axiosInstance.put(`/faqs/${id}`, data);
@@ -69,7 +69,7 @@ export default function FaqForm() {
         await axiosInstance.post("/faqs", data);
         toast.success("تمت إضافة السؤال بنجاح!", { id: toastId });
       }
-      navigate('/admin/faqs');
+      navigate('/admin/faqs', { replace: true });
     } catch (error) { 
         toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
     } finally { 
@@ -77,7 +77,13 @@ export default function FaqForm() {
     }
   };
 
-  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
+  if (isLoading) {
+    return (
+      <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
 
   return (
     <Container fluid className="max-w-75">
@@ -88,13 +94,15 @@ export default function FaqForm() {
               <span className="material-symbols-outlined">{id ? 'edit_document' : 'post_add'}</span>
               {id ? 'تعديل السؤال' : 'إضافة سؤال جديد'}
             </h4>
-            <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/faqs')}>عودة للقائمة</Button>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/faqs')}>
+              عودة للقائمة
+            </Button>
           </div>
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">نص السؤال</Form.Label>
-              <Form.Control type="text" placeholder="مثال: ما هي الأوراق المطلوبة لتجديد السجل التجاري؟" isInvalid={!!errors.question} {...register("question")} className="py-2 fw-bold" />
+              <Form.Control type="text" placeholder="مثال: ما هي الأوراق المطلوبة لتجديد السجل التجاري؟" isInvalid={!!errors.question} {...register("question")} className="py-2 fw-bold" disabled={isSubmitting} />
               <Form.Control.Feedback type="invalid">{errors.question?.message}</Form.Control.Feedback>
             </Form.Group>
 
@@ -102,17 +110,17 @@ export default function FaqForm() {
               <Form.Label className="fw-bold text-dark">الإجابة</Form.Label>
               <div style={{ direction: 'rtl' }}>
                 {/* @ts-ignore */}
-                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("answer", val, { shouldValidate: true })} style={{ height: '200px' }} />
+                <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("answer", val, { shouldValidate: true })} style={{ height: '200px' }} />
               </div>
               {errors.answer && <div className="text-danger mt-5 small fw-bold">{errors.answer.message}</div>}
             </Form.Group>
 
             <Form.Group className="mb-5 pt-3 border-top">
               <Form.Label className="fw-bold text-dark">حالة النشر</Form.Label>
-              <Form.Check type="switch" label="عرض السؤال في الموقع العام" {...register("isActive")} className="fw-bold text-primary fs-5" />
+              <Form.Check type="switch" label="عرض السؤال في الموقع العام" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
+            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2 rounded-pill" disabled={isSubmitting}>
               {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات' : 'إضافة السؤال'}</> )}
             </Button>
           </Form>

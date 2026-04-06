@@ -74,7 +74,7 @@ export default function BannerForm() {
     }
 
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري حفظ البانر...');
+    const toastId = toast.loading(id ? 'جاري تحديث البانر...' : 'جاري حفظ البانر ورفع الصورة...');
 
     try {
       const formData = new FormData();
@@ -93,7 +93,7 @@ export default function BannerForm() {
         toast.success("تمت إضافة البانر بنجاح!", { id: toastId });
       }
       
-      navigate('/admin/banners');
+      navigate('/admin/banners', { replace: true });
       
     } catch (error) { 
       toast.error("حدث خطأ أثناء حفظ البانر.", { id: toastId }); 
@@ -102,7 +102,13 @@ export default function BannerForm() {
     }
   };
 
-  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
+  if (isLoading) {
+    return (
+      <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
 
   return (
     <Container fluid className="max-w-75">
@@ -113,7 +119,7 @@ export default function BannerForm() {
               <span className="material-symbols-outlined">{id ? 'edit_document' : 'post_add'}</span>
               {id ? 'تعديل البانر' : 'إضافة بانر جديد'}
             </h4>
-            <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/banners')}>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/banners')}>
               عودة للقائمة
             </Button>
           </div>
@@ -121,24 +127,24 @@ export default function BannerForm() {
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">عنوان البانر</Form.Label>
-              <Form.Control type="text" placeholder="اكتب عنواناً للبانر..." isInvalid={!!errors.title} {...register("title")} className="py-2" />
+              <Form.Control type="text" placeholder="اكتب عنواناً للبانر..." isInvalid={!!errors.title} {...register("title")} className="py-2" disabled={isSubmitting} />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4">
                 <Form.Label className="fw-bold text-dark">الرابط (اختياري)</Form.Label>
-                <Form.Control type="text" placeholder="مثال: https://hamachamber.com/news/1" isInvalid={!!errors.link} {...register("link")} className="py-2" />
+                <Form.Control type="text" placeholder="مثال: https://hamachamber.com/news/1" isInvalid={!!errors.link} {...register("link")} className="py-2" disabled={isSubmitting} />
                 <Form.Control.Feedback type="invalid">{errors.link?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4 pt-3 border-top">
               <Form.Label className="fw-bold text-dark">حالة البانر</Form.Label>
-              <Form.Check type="switch" id="banner-active-switch" label="نشط (يعرض في الصفحة الرئيسية)" {...register("isActive")} className="fw-bold text-primary fs-5" />
+              <Form.Check type="switch" id="banner-active-switch" label="نشط (يعرض في الصفحة الرئيسية)" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
             </Form.Group>
 
             <Form.Group className="mb-5 text-center">
               <Form.Label className="fw-bold text-dark d-block mb-3">صورة البانر</Form.Label>
-              <input type="file" accept="image/*" id="banner-upload" className="d-none" onChange={handleFileChange} />
+              <input type="file" accept="image/*" id="banner-upload" className="d-none" onChange={handleFileChange} disabled={isSubmitting} />
               <label htmlFor="banner-upload" className="d-flex flex-column align-items-center justify-content-center border border-2 border-primary rounded-4 p-4 mx-auto transition-hover" style={{ maxWidth: '500px', cursor: 'pointer', backgroundColor: '#f8f9fa', borderStyle: 'dashed !important' }}>
                 {previewUrl ? (
                   <div className="position-relative w-100">
@@ -157,7 +163,7 @@ export default function BannerForm() {
               </label>
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
+            <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2 rounded-pill" disabled={isSubmitting}>
               {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ والرفع...</> ) : ( <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات' : 'إضافة البانر'}</> )}
             </Button>
           </Form>

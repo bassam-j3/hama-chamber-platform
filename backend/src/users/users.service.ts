@@ -18,6 +18,16 @@ export class UsersService {
     });
   }
 
+  async findOne(id: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id, isActive: true },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
   update(id: string, data: any) {
     return this.prisma.user.update({ 
       where: { id }, 
@@ -25,21 +35,21 @@ export class UsersService {
     });
   }
 
-  remove(id: string) {
+  async remove(id: string) {
+    // Ensure user exists and is active before deleting
+    await this.findOne(id);
     return this.prisma.user.update({
       where: { id },
       data: { isActive: false },
     });
   }
 
-  // 👇 Restored methods
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      throw new NotFoundException('User with this email not found');
+    if (!user || !user.isActive) {
+      throw new NotFoundException('User with this email not found or inactive');
     }
 
-    // Generate token
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 3600000); // 1 hour
 
@@ -51,8 +61,6 @@ export class UsersService {
       },
     });
 
-    // In a real application, you would send an email here.
-    // For now, we return it to the controller (or log it).
     console.log(`Reset token for ${email}: ${token}`);
     
     return { message: 'Password reset token generated (check console/logs)' };
@@ -62,7 +70,8 @@ export class UsersService {
      const user = await this.prisma.user.findFirst({
         where: {
             resetPasswordToken: token,
-            resetPasswordExpires: { gt: new Date() } // Ensure not expired
+            resetPasswordExpires: { gt: new Date() },
+            isActive: true
         }
      });
 

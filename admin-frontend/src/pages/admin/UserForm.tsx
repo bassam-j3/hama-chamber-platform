@@ -10,13 +10,13 @@ export default function UserForm() {
   const location = useLocation();
   const isEdit = Boolean(id);
 
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'editor', isActive: true });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'EDITOR', isActive: true });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isEdit && location.state?.userItem) {
       const u = location.state.userItem;
-      setFormData({ name: u.name, email: u.email, password: '', role: u.role, isActive: u.isActive });
+      setFormData({ name: u.name, email: u.email, password: '', role: u.role || 'EDITOR', isActive: u.isActive });
     }
   }, [id, location.state]);
 
@@ -28,7 +28,7 @@ export default function UserForm() {
     }
 
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري حفظ البيانات...');
+    const toastId = toast.loading(isEdit ? 'جاري تحديث بيانات المستخدم...' : 'جاري إضافة المستخدم...');
 
     try {
       const payload: any = { ...formData };
@@ -42,7 +42,7 @@ export default function UserForm() {
         toast.success("تمت إضافة المستخدم بنجاح!", { id: toastId });
       }
       
-      navigate('/admin/users');
+      navigate('/admin/users', { replace: true });
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم', { id: toastId });
     } finally {
@@ -59,40 +59,41 @@ export default function UserForm() {
               <span className="material-symbols-outlined">{isEdit ? 'manage_accounts' : 'person_add'}</span>
               {isEdit ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}
             </h4>
-            <Button variant="light" onClick={() => navigate('/admin/users')}>عودة للقائمة</Button>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/users')}>
+              عودة للقائمة
+            </Button>
           </div>
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label>الاسم الكامل</Form.Label>
-              <Form.Control type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required />
+              <Form.Label className="fw-bold text-dark">الاسم الكامل</Form.Label>
+              <Form.Control type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={isSubmitting} className="py-2" />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>البريد الإلكتروني</Form.Label>
-              <Form.Control type="email" dir="ltr" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required />
+              <Form.Label className="fw-bold text-dark">البريد الإلكتروني</Form.Label>
+              <Form.Control type="email" dir="ltr" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required disabled={isSubmitting} className="py-2" />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>كلمة المرور {isEdit && <small className="text-muted">(اتركها فارغة إذا لم ترد تغييرها)</small>}</Form.Label>
-              <Form.Control type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!isEdit} />
+              <Form.Label className="fw-bold text-dark">كلمة المرور {isEdit && <small className="text-muted fw-normal">(اتركها فارغة إذا لم ترد تغييرها)</small>}</Form.Label>
+              <Form.Control type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!isEdit} disabled={isSubmitting} className="py-2" dir="ltr" />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>الصلاحية (الرتبة)</Form.Label>
-              <Form.Select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}>
-                <option value="editor">محرر (صلاحيات محدودة)</option>
-                <option value="admin">مدير إداري</option>
-                <option value="super_admin">مدير عام (صلاحيات كاملة)</option>
+            <Form.Group className="mb-4">
+              <Form.Label className="fw-bold text-dark">الصلاحية (الرتبة)</Form.Label>
+              <Form.Select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} disabled={isSubmitting} className="py-2 fw-bold">
+                <option value="EDITOR">محرر (صلاحيات محدودة)</option>
+                <option value="ADMIN">مدير نظام (صلاحيات كاملة)</option>
               </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-4 pt-3 border-top">
-              <Form.Check type="switch" label="حساب نشط (يمكنه تسجيل الدخول)" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="fw-bold text-primary" />
+              <Form.Check type="switch" label="حساب نشط (يمكنه تسجيل الدخول للوحة التحكم)" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
-              {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> حفظ البيانات</> )}
+            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2 rounded-pill" disabled={isSubmitting}>
+              {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> {isEdit ? 'حفظ التعديلات' : 'إنشاء الحساب'}</> )}
             </Button>
           </Form>
         </Card.Body>

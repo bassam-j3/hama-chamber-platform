@@ -29,7 +29,7 @@ export default function NewsForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  // Gallery State (Phase 2)
+  // Gallery State 
   const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
   const [galleryPreviews, setGalleryPreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -67,7 +67,7 @@ export default function NewsForm() {
     setValue("content", data.content);
     setValue("isActive", data.isActive);
     setPreviewUrl(data.imageUrl || null);
-    setExistingImages(data.images || []); // Load gallery from DB
+    setExistingImages(data.images || []); 
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +98,7 @@ export default function NewsForm() {
 
   const onSubmit = async (data: NewsFormValues) => {
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري حفظ الخبر والمعرض...');
+    const toastId = toast.loading(id ? 'جاري تحديث الخبر والمعرض...' : 'جاري نشر الخبر ورفع الصور...');
     
     try {
       const formData = new FormData();
@@ -108,10 +108,7 @@ export default function NewsForm() {
       
       if (selectedFile) formData.append('image', selectedFile);
 
-      // Append new gallery files
       galleryFiles.forEach(file => formData.append('gallery', file));
-      
-      // Send remaining existing images (for deletion sync)
       formData.append('remainingImages', JSON.stringify(existingImages));
 
       const config = { headers: { 'Content-Type': 'multipart/form-data' } };
@@ -124,7 +121,7 @@ export default function NewsForm() {
         toast.success("تم نشر الخبر بنجاح!", { id: toastId });
       }
       
-      navigate('/admin/news');
+      navigate('/admin/news', { replace: true });
     } catch (error) { 
       toast.error("حدث خطأ أثناء حفظ الخبر.", { id: toastId }); 
     } finally { 
@@ -132,7 +129,13 @@ export default function NewsForm() {
     }
   };
 
-  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" variant="primary" /></div>;
+  if (isLoading) {
+    return (
+      <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '60vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
 
   return (
     <Container fluid className="max-w-75 mb-5">
@@ -143,53 +146,72 @@ export default function NewsForm() {
               <span className="material-symbols-outlined">{id ? 'edit_document' : 'post_add'}</span>
               {id ? 'تعديل الخبر' : 'إضافة خبر جديد'}
             </h4>
-            <Button variant="light" className="fw-bold border shadow-sm" onClick={() => navigate('/admin/news')}>عودة</Button>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/news')}>
+               عودة
+            </Button>
           </div>
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
-              <Form.Label className="fw-bold">عنوان الخبر</Form.Label>
-              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" />
+              <Form.Label className="fw-bold text-dark">عنوان الخبر</Form.Label>
+              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" disabled={isSubmitting} />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
-              <Form.Label className="fw-bold">تفاصيل الخبر</Form.Label>
+              <Form.Label className="fw-bold text-dark">تفاصيل الخبر</Form.Label>
               <div style={{ direction: 'rtl' }}>
                 {/* @ts-ignore */}
-                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val)} style={{ height: '300px' }} />
+                <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
               </div>
+              {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
             </Form.Group>
 
             {/* Main Image Section */}
             <Form.Group className="mb-5 pt-4 border-top text-center">
-              <Form.Label className="fw-bold d-block mb-3">الصورة الرئيسية للخبر</Form.Label>
-              <input type="file" accept="image/*" id="main-upload" className="d-none" onChange={handleFileChange} />
-              <label htmlFor="main-upload" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer" style={{ borderStyle: 'dashed' }}>
-                {previewUrl ? <img src={previewUrl} className="rounded-3" style={{ maxHeight: '150px' }} /> : <div className="p-4 text-muted">اضغط لاختيار صورة الغلاف</div>}
+              <Form.Label className="fw-bold text-dark d-block mb-3">الصورة الرئيسية للخبر</Form.Label>
+              <input type="file" accept="image/*" id="main-upload" className="d-none" onChange={handleFileChange} disabled={isSubmitting} />
+              <label htmlFor="main-upload" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer transition-hover" style={{ borderStyle: 'dashed', backgroundColor: '#f8f9fa' }}>
+                {previewUrl ? (
+                  <div className="position-relative">
+                    <img src={previewUrl} className="rounded-3 shadow-sm" style={{ maxHeight: '150px' }} />
+                    <div className="mt-2 text-primary fw-bold small"><span className="material-symbols-outlined align-middle fs-6">edit</span> تغيير الغلاف</div>
+                  </div>
+                ) : (
+                  <div className="p-4 text-muted d-flex flex-column align-items-center">
+                    <span className="material-symbols-outlined fs-1 mb-2 text-primary">add_photo_alternate</span>
+                    اضغط لاختيار صورة الغلاف
+                  </div>
+                )}
               </label>
             </Form.Group>
 
-            {/* Gallery Section (Phase 2) */}
+            {/* Gallery Section */}
             <Card className="bg-light border-0 rounded-4 mb-5">
               <Card.Body className="p-4">
                 <h6 className="fw-bold text-dark d-flex align-items-center gap-2 mb-3">
                   <span className="material-symbols-outlined">collections</span> معرض صور إضافي (اختياري)
                 </h6>
-                <input type="file" multiple accept="image/*" id="gallery-upload" className="d-none" onChange={handleGalleryChange} />
-                <label htmlFor="gallery-upload" className="btn btn-outline-primary btn-sm fw-bold mb-3">إضافة صور للمعرض</label>
+                <input type="file" multiple accept="image/*" id="gallery-upload" className="d-none" onChange={handleGalleryChange} disabled={isSubmitting} />
+                <label htmlFor="gallery-upload" className="btn btn-outline-primary btn-sm fw-bold mb-3 rounded-pill px-3">
+                  <span className="material-symbols-outlined fs-6 align-middle me-1">add</span> إضافة صور للمعرض
+                </label>
                 
-                <Row className="g-2">
+                <Row className="g-3 mt-1">
                   {existingImages.map((url, idx) => (
                     <Col key={`ex-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded shadow-sm object-fit-cover" style={{ height: '80px' }} />
-                      <button type="button" onClick={() => removeExistingGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
+                      <img src={url} className="w-100 rounded shadow-sm object-fit-cover border" style={{ height: '80px' }} />
+                      <button type="button" onClick={() => removeExistingGalleryImage(idx)} disabled={isSubmitting} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: '24px', height: '24px' }}>
+                        <span className="material-symbols-outlined fs-6">close</span>
+                      </button>
                     </Col>
                   ))}
                   {galleryPreviews.map((url, idx) => (
                     <Col key={`new-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded shadow-sm border border-primary object-fit-cover" style={{ height: '80px' }} />
-                      <button type="button" onClick={() => removeNewGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
+                      <img src={url} className="w-100 rounded shadow-sm border border-2 border-primary object-fit-cover" style={{ height: '80px' }} />
+                      <button type="button" onClick={() => removeNewGalleryImage(idx)} disabled={isSubmitting} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: '24px', height: '24px' }}>
+                        <span className="material-symbols-outlined fs-6">close</span>
+                      </button>
                     </Col>
                   ))}
                 </Row>
@@ -197,11 +219,11 @@ export default function NewsForm() {
             </Card>
 
             <Form.Group className="mb-4">
-              <Form.Check type="switch" label="نشر فوراً" {...register("isActive")} className="fw-bold" />
+              <Form.Check type="switch" label="نشر فوراً (مرئي للعامة)" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
             </Form.Group>
 
-            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner size="sm" animation="border" /> : <><span className="material-symbols-outlined">save</span> حفظ الخبر</>}
+            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2 rounded-pill fs-5" disabled={isSubmitting}>
+              {isSubmitting ? ( <><Spinner size="sm" animation="border" /> جاري الحفظ...</> ) : ( <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات' : 'نشر الخبر'}</> )}
             </Button>
           </Form>
         </Card.Body>

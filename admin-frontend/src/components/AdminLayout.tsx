@@ -1,6 +1,5 @@
 // src/components/AdminLayout.tsx
 import { useState, useEffect } from 'react';
-// 👇 تم إضافة NavLink هنا لحل الخطأ
 import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; 
 import logoImg from '../../hamachamberlogo.svg';
@@ -35,7 +34,7 @@ export default function AdminLayout() {
     if (path.includes('/faqs')) return 'الأسئلة الشائعة';
     if (path.includes('/pages')) return 'الصفحات الديناميكية';
     if (path.includes('/users')) return 'إدارة المدراء والصلاحيات'; 
-    if (path.includes('/qr-generator')) return 'مولد QR Code'; // 👈 أضفنا العنوان هنا لكي يظهر في الـ Header
+    if (path.includes('/qr-generator')) return 'مولد QR Code'; 
     return 'لوحة التحكم'; 
   };
 
@@ -77,11 +76,7 @@ export default function AdminLayout() {
             <span className="material-symbols-outlined fs-5 transition-all">dashboard</span> لوحة التحكم
           </Link>
           
-          {user?.role === 'super_admin' && (
-            <Link to="/admin/users" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/users') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
-              <span className="material-symbols-outlined fs-5 transition-all">manage_accounts</span> إدارة المدراء
-            </Link>
-          )}
+          {/* تم إخفاء رابط "إدارة المدراء" من هنا كما طلبت بناءً على Feature #5 */}
 
           <div className="text-white-50 small fw-bold mt-3 mb-1 px-2" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>إدارة المحتوى</div>
           <Link to="/admin/inbox" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/inbox') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
@@ -121,7 +116,6 @@ export default function AdminLayout() {
             <span className="material-symbols-outlined fs-5 transition-all">post_add</span> الصفحات الديناميكية
           </Link>
           
-          {/* 👇 تم إصلاح خطأ الـ NavLink هنا بفضل الاستيراد في الأعلى */}
           <NavLink
             to="/admin/qr-generator"
             className={({ isActive }) =>

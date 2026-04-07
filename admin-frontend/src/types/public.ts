@@ -59,3 +59,22 @@ export interface Faq {
   answer: string;
   isActive: boolean;
 }
+
+// 👇 السطور الجديدة المضافة لحل الخطأ 👇
+export interface Exhibition {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface Opportunity {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl: string;
+  isActive: boolean;
+  createdAt: string;
+}

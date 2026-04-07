@@ -3,17 +3,20 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast'; 
 
-// mail
 import Inbox from './pages/admin/Inbox';
-
-// Layouts
 import PublicLayout from './components/PublicLayout';
 import AdminLayout from './components/AdminLayout';
 
 // Public Pages
 import PublicHome from './pages/PublicHome';
 import PublicNews from './pages/PublicNews';
-import PublicProjects from './pages/PublicProjects'; // 👈 استيراد صفحة المشاريع
+import PublicProjects from './pages/PublicProjects';
+import PublicLaws from './pages/PublicLaws';
+import PublicCirculars from './pages/PublicCirculars';
+import PublicExhibitions from './pages/PublicExhibitions';
+import PublicOpportunities from './pages/PublicOpportunities';
+import PublicBoardMembers from './pages/PublicBoardMembers';
+import PublicFaqs from './pages/PublicFaqs';
 import DynamicPage from './pages/DynamicPage';
 import RedirectToJobs from './pages/RedirectToJobs';
 import Login from './pages/Login'; 
@@ -46,8 +49,6 @@ import UsersManagement from './pages/admin/UsersManagement';
 import UserForm from './pages/admin/UserForm';
 import QrGenerator from './pages/admin/QrGenerator';
 
-// ================= مكونات الحماية الذكية (Guards) ================= //
-
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
@@ -58,8 +59,6 @@ const PublicOnlyRoute = ({ children }: { children: React.ReactElement }) => {
   return isAuthenticated ? <Navigate to="/admin" replace /> : children;
 };
 
-// ================================================================= //
-
 export default function App() {
   return (
     <Router>
@@ -68,46 +67,37 @@ export default function App() {
           position="top-center"
           toastOptions={{
             duration: 4000,
-            style: {
-              background: '#333',
-              color: '#fff',
-              fontFamily: 'Tajawal, sans-serif',
-              fontWeight: 'bold',
-            },
-            success: {
-              style: {
-                background: '#198754',
-              },
-            },
-            error: {
-              style: {
-                background: '#dc3545',
-              },
-            },
+            style: { background: '#333', color: '#fff', fontFamily: 'Tajawal, sans-serif', fontWeight: 'bold' },
+            success: { style: { background: '#198754' } },
+            error: { style: { background: '#dc3545' } },
           }} 
         />
         
         <Routes>
-          {/* ================= الموقع العام (متاح للجميع) ================= */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<PublicHome />} />
             <Route path="/news" element={<PublicNews />} />
-            <Route path="/projects" element={<PublicProjects />} /> {/* 👈 إضافة المسار */}
+            <Route path="/projects" element={<PublicProjects />} />
+            {/* 👇 إضافة روابط الأقسام الجديدة 👇 */}
+            <Route path="/laws" element={<PublicLaws />} />
+            <Route path="/circulars" element={<PublicCirculars />} />
+            <Route path="/exhibitions" element={<PublicExhibitions />} />
+            <Route path="/opportunities" element={<PublicOpportunities />} />
+            <Route path="/board-members" element={<PublicBoardMembers />} />
+            <Route path="/faqs" element={<PublicFaqs />} />
+            
             <Route path="/page/:slug" element={<DynamicPage />} />
             <Route path="/jobs" element={<RedirectToJobs />} />
             <Route path="/job-applications" element={<RedirectToJobs />} />
           </Route>
           
-          {/* ================= شاشات تسجيل الدخول والاستعادة ================= */}
           <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
           <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPassword /></PublicOnlyRoute>} />
           <Route path="/reset-password/:token" element={<PublicOnlyRoute><ResetPassword /></PublicOnlyRoute>} />
           
-          {/* ================= لوحة الإدارة (مغلقة بالكامل ومحمية) ================= */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
-              
               <Route path="inbox" element={<Inbox />} />  
               
               <Route path="users" element={<UsersManagement />} />
@@ -157,7 +147,6 @@ export default function App() {
               <Route path="qr-generator" element={<QrGenerator />} />
             </Route>
           </Route>
-
         </Routes>
       </AuthProvider>
     </Router>

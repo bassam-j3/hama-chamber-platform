@@ -4,7 +4,6 @@ import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-do
 import { useAuth } from '../context/AuthContext'; 
 import logoImg from '../../hamachamberlogo.svg';
 
-
 export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -76,7 +75,12 @@ export default function AdminLayout() {
             <span className="material-symbols-outlined fs-5 transition-all">dashboard</span> لوحة التحكم
           </Link>
           
-          {/* تم إخفاء رابط "إدارة المدراء" من هنا كما طلبت بناءً على Feature #5 */}
+          {/* 👇 تم استعادة رابط إدارة المدراء بناءً على طلبك 👇 */}
+          {user?.role === 'super_admin' && (
+            <Link to="/admin/users" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/users') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
+              <span className="material-symbols-outlined fs-5 transition-all">manage_accounts</span> إدارة المدراء
+            </Link>
+          )}
 
           <div className="text-white-50 small fw-bold mt-3 mb-1 px-2" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>إدارة المحتوى</div>
           <Link to="/admin/inbox" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/inbox') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>

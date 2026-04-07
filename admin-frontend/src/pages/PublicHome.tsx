@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Spinner, Button } from "react-bootstrap";
+import { Spinner, Button, Container } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
 import type { BoardMember, Project, Law, Circular, News, Banner, Faq } from "../types/public";
 import {
@@ -20,7 +20,6 @@ export default function PublicHome() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // استعادة جميع متغيرات الحالة (States)
   const [members, setMembers] = useState<BoardMember[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [laws, setLaws] = useState<Law[]>([]);
@@ -37,7 +36,6 @@ export default function PublicHome() {
     const fetchPublicData = async () => {
       setIsLoading(true);
       try {
-        // استعادة جلب جميع البيانات للصفحة الرئيسية
         const [membersRes, projectsRes, lawsRes, circularsRes, newsRes, bannersRes, faqsRes] = await Promise.all([
           axiosInstance.get("/board-members").catch(() => ({ data: [] })),
           axiosInstance.get("/projects").catch(() => ({ data: [] })),
@@ -96,7 +94,6 @@ export default function PublicHome() {
       
       <div id="about"><AboutSection /></div>
       
-      {/* قسم الأخبار مع زر العرض المخصص */}
       {news.length > 0 && (
         <div id="news-section">
           <NewsSection news={news} onSelectNews={setSelectedNews} />
@@ -108,7 +105,6 @@ export default function PublicHome() {
         </div>
       )}
 
-      {/* قسم المشاريع مع زر العرض المخصص */}
       {projects.length > 0 && (
         <div id="projects">
           <ProjectsSection projects={projects} onSelectProject={setSelectedProject} />
@@ -120,11 +116,54 @@ export default function PublicHome() {
         </div>
       )}
 
-      {/* 🟢 استعادة الأقسام المحذوفة كما طلبت 🟢 */}
-      <div id="laws-section"><LawsCircularsSection laws={laws} circulars={circulars} /></div>
-      <div id="board-members"><BoardMembersSection members={members} /></div>
-      <div id="faqs-section"><FaqSection faqs={faqs} /></div>
+      {/* 🟢 قسم القوانين والتعاميم مع الأزرار 🟢 */}
+      <div id="laws-section">
+        <LawsCircularsSection laws={laws} circulars={circulars} />
+        <div className="text-center bg-white pb-5 d-flex justify-content-center flex-wrap gap-3">
+           <Button variant="outline-primary" className="rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/laws')}>
+             عرض كافة القوانين <span className="material-symbols-outlined fs-5">gavel</span>
+           </Button>
+           <Button variant="outline-info" className="rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all text-dark" onClick={() => navigate('/circulars')}>
+             عرض كافة التعاميم <span className="material-symbols-outlined fs-5">assignment</span>
+           </Button>
+        </div>
+      </div>
       
+      {/* 🟢 قسم الأعضاء مع الأزرار 🟢 */}
+      <div id="board-members">
+        <BoardMembersSection members={members} />
+        <div className="text-center bg-light pb-5">
+           <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/board-members')}>
+             عرض كافة الأعضاء <span className="material-symbols-outlined fs-5">groups</span>
+           </Button>
+        </div>
+      </div>
+
+      {/* 🟢 قسم الأسئلة مع الأزرار 🟢 */}
+      <div id="faqs-section">
+        <FaqSection faqs={faqs} />
+        <div className="text-center bg-white pb-5">
+           <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/faqs')}>
+             تصفح جميع الأسئلة <span className="material-symbols-outlined fs-5">help_center</span>
+           </Button>
+        </div>
+      </div>
+      
+      {/* 🟢 قسم الوصول السريع للفرص والمعارض 🟢 */}
+      <div className="py-5 text-center border-top border-bottom" style={{ backgroundColor: '#f0f5f4' }}>
+        <Container>
+          <h3 className="fw-bold text-primary mb-4">اكتشف المزيد من خدمات الغرفة</h3>
+          <div className="d-flex justify-content-center flex-wrap gap-3">
+             <Button variant="primary" className="rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow-sm hover-scale transition-all" onClick={() => navigate('/opportunities')}>
+               <span className="material-symbols-outlined fs-5">lightbulb</span> الفرص الاستثمارية والمناقصات
+             </Button>
+             <Button variant="primary" className="rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow-sm hover-scale transition-all" onClick={() => navigate('/exhibitions')}>
+               <span className="material-symbols-outlined fs-5">festival</span> المعارض والمؤتمرات
+             </Button>
+          </div>
+        </Container>
+      </div>
+
       <div id="contact-section"><ContactSection /></div>
 
       <NewsModal news={selectedNews} onClose={() => setSelectedNews(null)} />

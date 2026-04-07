@@ -1,95 +1,77 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
-    return this.prisma.user.create({ data });
+  async create(data: any) {
+    // 1. التحقق من عدم وجود الإيميل مسبقاً
+    const existingUser = await this.prisma.user.findUnique({ where: { email: data.email } });
+    if (existingUser) {
+      throw new ConflictException('البريد الإلكتروني مستخدم بالفعل');
+    }
+
+    // 2. 👈 تشفير كلمة المرور قبل الحفظ
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    return this.prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        isActive: data.isActive,
+        password: hashedPassword, // حفظ الكلمة المشفرة
+      },
+    });
   }
 
   findAll() {
+    // جلب المستخدمين بدون إرسال كلمات المرور للواجهة الأمامية لأسباب أمنية
     return this.prisma.user.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
+      select: { 
+        id: true, 
+        name: true, 
+        email: true, 
+        role: true, 
+        isActive: true, 
+        createdAt: true 
+      },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
   async findOne(id: string) {
-    const user = await this.prisma.user.findFirst({
-      where: { id, isActive: true },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('المستخدم غير موجود');
     return user;
   }
 
-  update(id: string, data: any) {
-    return this.prisma.user.update({ 
-      where: { id }, 
-      data 
-    });
-  }
+  async update(id: string, data: any) {
+    const updateData: any = {
+      name: data.name,
+      email: data.email,
+      role: data.role,
+      isActive: data.isActive,
+    };
 
-  async remove(id: string) {
-    // Ensure user exists and is active before deleting
-    await this.findOne(id);
-    return this.prisma.user.update({
-      where: { id },
-      data: { isActive: false },
-    });
-  }
-
-  async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user || !user.isActive) {
-      throw new NotFoundException('User with this email not found or inactive');
+    // 3. 👈 إذا قام المدير بتغيير كلمة المرور أثناء التعديل، قم بتشفيرها
+    if (data.password && data.password.trim() !== '') {
+      updateData.password = await bcrypt.hash(data.password, 10);
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hour
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        resetPasswordToken: token,
-        resetPasswordExpires: expires,
-      },
+    return this.prisma.user.update({
+      where: { id },
+      data: updateData,
     });
-
-    console.log(`Reset token for ${email}: ${token}`);
-    
-    return { message: 'Password reset token generated (check console/logs)' };
   }
 
-  async resetPassword(token: string, newPassword: string) {
-     const user = await this.prisma.user.findFirst({
-        where: {
-            resetPasswordToken: token,
-            resetPasswordExpires: { gt: new Date() },
-            isActive: true
-        }
-     });
-
-     if (!user) {
-         throw new BadRequestException('Invalid or expired reset token');
-     }
-
-     const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-     await this.prisma.user.update({
-         where: { id: user.id },
-         data: {
-             password: hashedPassword,
-             resetPasswordToken: null,
-             resetPasswordExpires: null
-         }
-     });
-
-     return { message: 'Password successfully reset' };
+  remove(id: string) {
+    // 4. الحذف المرن (Soft Delete) للمستخدمين لمنع انهيار السجلات المرتبطة
+    return this.prisma.user.update({
+      where: { id },
+      data: { isActive: false }
+    });
   }
 }

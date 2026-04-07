@@ -12,6 +12,8 @@ import AdminLayout from './components/AdminLayout';
 
 // Public Pages
 import PublicHome from './pages/PublicHome';
+import PublicNews from './pages/PublicNews';
+import PublicProjects from './pages/PublicProjects'; // 👈 استيراد صفحة المشاريع
 import DynamicPage from './pages/DynamicPage';
 import RedirectToJobs from './pages/RedirectToJobs';
 import Login from './pages/Login'; 
@@ -42,7 +44,6 @@ import PageForm from './pages/admin/PageForm';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersManagement from './pages/admin/UsersManagement';
 import UserForm from './pages/admin/UserForm';
-import PublicNews from './pages/PublicNews';
 import QrGenerator from './pages/admin/QrGenerator';
 
 // ================= مكونات الحماية الذكية (Guards) ================= //
@@ -63,7 +64,6 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        {/* 👇 GLOBAL TOASTER 👇 */}
         <Toaster 
           position="top-center"
           toastOptions={{
@@ -92,6 +92,7 @@ export default function App() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<PublicHome />} />
             <Route path="/news" element={<PublicNews />} />
+            <Route path="/projects" element={<PublicProjects />} /> {/* 👈 إضافة المسار */}
             <Route path="/page/:slug" element={<DynamicPage />} />
             <Route path="/jobs" element={<RedirectToJobs />} />
             <Route path="/job-applications" element={<RedirectToJobs />} />
@@ -113,17 +114,14 @@ export default function App() {
               <Route path="users/create" element={<UserForm />} />
               <Route path="users/edit/:id" element={<UserForm />} />
               
-              {/* مسارات أعضاء المجلس */}
               <Route path="board-members" element={<BoardMembers />} />
               <Route path="board-members/create" element={<BoardMemberForm />} />
               <Route path="board-members/edit/:id" element={<BoardMemberForm />} />
 
-              {/* مسارات التعاميم */}
               <Route path="circulars" element={<CircularsManagement />} />
               <Route path="circulars/create" element={<CircularForm />} />
               <Route path="circulars/edit/:id" element={<CircularForm />} />
 
-              {/* مسارات القوانين */}
               <Route path="laws" element={<LawsManagement />} />
               <Route path="laws/create" element={<LawForm />} />
               <Route path="laws/edit/:id" element={<LawForm />} />

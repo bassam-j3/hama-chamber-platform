@@ -1,47 +1,40 @@
-import { Container, Row, Col, Card, Button } from "react-bootstrap";
-import { isVideo } from "../../../utils/format";
+import { Container, Row, Col } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import type { Project } from "../../../types/public";
+import ProjectCard from "../../../components/ProjectCard";
 
 interface ProjectsSectionProps {
   projects: Project[];
-  onSelectProject: (project: Project) => void;
+  onSelectProject: (item: Project) => void;
 }
 
 export default function ProjectsSection({ projects, onSelectProject }: ProjectsSectionProps) {
+  if (!projects || projects.length === 0) return null;
+
   return (
-    <section id="projects" className="py-5 bg-white">
+    <section id="projects-section" className="py-5 bg-light" dir="rtl">
       <Container className="py-5">
-        <div className="text-center mb-5">
-          <h2 className="h2 fw-bold text-primary mb-3">مشاريع وإنجازات الغرفة</h2>
-          <div className="bg-gold mx-auto mb-4 rounded-pill" style={{ width: "80px", height: "6px" }} />
+        <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-5">
+          <div>
+            <h2 className="h2 fw-bold text-primary d-flex align-items-center gap-3 mb-2">
+              <span className="bg-gold d-inline-block rounded-pill" style={{ width: "40px", height: "6px" }} /> 
+              المشاريع التنموية والاقتصادية
+            </h2>
+            <p className="text-secondary mb-0 fs-5">تعرف على أهم المشاريع التي تديرها وتدعمها الغرفة</p>
+          </div>
+          
+          <Link to="/projects" className="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold d-flex align-items-center gap-2 hover-scale transition-all">
+            عرض كل المشاريع <span className="material-symbols-outlined fs-5">arrow_back</span>
+          </Link>
         </div>
-        {projects.length === 0 ? (
-          <div className="text-center text-muted">لا توجد مشاريع.</div>
-        ) : (
-          <Row className="g-4">
-            {projects.map((project) => (
-              <Col md={6} lg={4} key={project.id}>
-                <Card className="h-100 shadow-sm border border-light rounded-4 overflow-hidden transition-all hover-translate-y group bg-light bg-opacity-50">
-                  <div className="bg-dark position-relative overflow-hidden" style={{ height: "240px" }}>
-                    {project.imageUrl ? (
-                      isVideo(project.imageUrl) ? (
-                        <div className="w-100 h-100 position-relative">
-                          <video src={project.imageUrl} className="w-100 h-100 object-fit-cover opacity-75 group-hover-scale transition-all" />
-                          <div className="position-absolute top-50 start-50 translate-middle text-white bg-primary bg-opacity-75 rounded-circle d-flex align-items-center justify-content-center shadow" style={{ width: "60px", height: "60px" }}><span className="material-symbols-outlined fs-1">play_arrow</span></div>
-                        </div>
-                      ) : <img src={project.imageUrl} alt="" className="w-100 h-100 object-fit-cover group-hover-scale transition-all" />
-                    ) : <div className="w-100 h-100 d-flex align-items-center justify-content-center text-secondary bg-light"><span className="material-symbols-outlined display-1">domain</span></div>}
-                  </div>
-                  <Card.Body className="p-4 d-flex flex-column">
-                    <Card.Title className="h5 fw-bold text-dark mb-3 lh-base group-hover-text-primary transition-all">{project.title}</Card.Title>
-                    <div className="text-secondary line-clamp-3 mb-4 small" dangerouslySetInnerHTML={{ __html: project.content }} />
-                    <Button variant="light" className="text-primary fw-bold w-100 rounded-3 mt-auto py-2 border hover-bg-primary transition-all shadow-sm" onClick={() => onSelectProject(project)}>اقرأ التفاصيل</Button>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
+        
+        <Row className="g-4">
+          {projects.slice(0, 3).map((item) => (
+            <Col lg={4} md={6} sm={12} key={item.id}>
+              <ProjectCard item={item} onClick={onSelectProject} />
+            </Col>
+          ))}
+        </Row>
       </Container>
     </section>
   );

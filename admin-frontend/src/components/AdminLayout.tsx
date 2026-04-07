@@ -14,7 +14,7 @@ export default function AdminLayout() {
     setShowSidebar(false);
   }, [location.pathname]);
 
-  const { user, logout } = useAuth?.() || { user: { name: 'مدير النظام', role: 'super_admin' }, logout: () => navigate('/') };
+  const { user, logout } = useAuth?.() || { user: { name: 'مدير النظام', role: 'ADMIN' }, logout: () => navigate('/') };
 
   const handleLogout = () => {
     logout();
@@ -36,6 +36,9 @@ export default function AdminLayout() {
     if (path.includes('/qr-generator')) return 'مولد QR Code'; 
     return 'لوحة التحكم'; 
   };
+
+  // التحقق من الصلاحية العليا
+  const isSuperAdmin = user?.role === 'ADMIN' || user?.role === 'admin' || user?.role === 'super_admin';
 
   return (
     <div className="d-flex w-100 vh-100 overflow-hidden" style={{ backgroundColor: '#f4f7f6' }} dir="rtl">
@@ -75,8 +78,8 @@ export default function AdminLayout() {
             <span className="material-symbols-outlined fs-5 transition-all">dashboard</span> لوحة التحكم
           </Link>
           
-          {/* 👇 تم استعادة رابط إدارة المدراء بناءً على طلبك 👇 */}
-          {user?.role === 'super_admin' && (
+          {/* 👇 هنا تم إصلاح الشرط ليتعرف على صلاحيتك كـ ADMIN 👇 */}
+          {isSuperAdmin && (
             <Link to="/admin/users" className={`text-decoration-none d-flex align-items-center gap-3 px-3 py-3 rounded-3 transition-all ${location.pathname.includes('/admin/users') ? 'bg-white bg-opacity-10 text-white fw-bold border-end border-3 border-gold' : 'text-white-50 hover-text-white hover-bg-white hover-bg-opacity-10'}`}>
               <span className="material-symbols-outlined fs-5 transition-all">manage_accounts</span> إدارة المدراء
             </Link>
@@ -142,10 +145,9 @@ export default function AdminLayout() {
                 </div>
                 <div className="d-flex flex-column text-truncate">
                    <span className="small fw-bold lh-1 text-white text-truncate">{user?.name || 'مدير النظام'}</span>
-                   <span className="text-white-50 lh-1 mt-2" style={{ fontSize: '0.7rem' }}>{user?.role === 'super_admin' ? 'مدير عام' : 'مدير إداري'}</span>
+                   <span className="text-white-50 lh-1 mt-2" style={{ fontSize: '0.7rem' }}>{isSuperAdmin ? 'مدير عام' : 'مدير إداري'}</span>
                 </div>
              </div>
-             {/* زر تسجيل الخروج مع تأثير التحويم */}
              <button onClick={handleLogout} className="btn btn-link text-white-50 p-0 hover-text-danger hover-scale transition-all flex-shrink-0 ms-2" title="تسجيل الخروج">
                <span className="material-symbols-outlined fs-5">logout</span>
              </button>

@@ -1,9 +1,10 @@
-export { default as HeroBannerSection } from "./HeroBannerSection";
-export { default as AboutSection } from "./AboutSection"; // 👈 أضف هذا السطر
-export { default as NewsSection } from "./NewsSection";
-export { default as LawsCircularsSection } from "./LawsCircularsSection";
-export { default as ProjectsSection } from "./ProjectsSection";
-export { default as BoardMembersSection } from "./BoardMembersSection";
-export { default as FaqSection } from "./FaqSection";
-export { default as ContactSection } from "./ContactSection";
-export { default as NewsTickerSection } from "./NewsTickerSection";
+export { default as HeroBannerSection } from './HeroBannerSection';
+export { default as AboutSection } from './AboutSection';
+export { default as NewsSection } from './NewsSection';
+export { default as LawsCircularsSection } from './LawsCircularsSection';
+export { default as ProjectsSection } from './ProjectsSection';
+export { default as BoardMembersSection } from './BoardMembersSection';
+export { default as FaqSection } from './FaqSection';
+export { default as ContactSection } from './ContactSection';
+export { default as OpportunitiesSection } from './OpportunitiesSection';
+export { default as ExhibitionsSection } from './ExhibitionsSection';

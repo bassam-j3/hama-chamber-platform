@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Spinner, Button, Container } from "react-bootstrap";
+import { Spinner, Button } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
-import type { BoardMember, Project, Law, Circular, News, Banner, Faq } from "../types/public";
+import type { BoardMember, Project, Law, Circular, News, Banner, Faq, Opportunity, Exhibition } from "../types/public";
 import {
   HeroBannerSection,
   AboutSection, 
@@ -12,6 +12,8 @@ import {
   BoardMembersSection,
   FaqSection,
   ContactSection,
+  OpportunitiesSection,
+  ExhibitionsSection
 } from "./home/sections";
 import NewsModal from "./home/NewsModal";
 import ProjectModal from "./home/ProjectModal";
@@ -27,6 +29,8 @@ export default function PublicHome() {
   const [news, setNews] = useState<News[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [faqs, setFaqs] = useState<Faq[]>([]);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -36,7 +40,7 @@ export default function PublicHome() {
     const fetchPublicData = async () => {
       setIsLoading(true);
       try {
-        const [membersRes, projectsRes, lawsRes, circularsRes, newsRes, bannersRes, faqsRes] = await Promise.all([
+        const [membersRes, projectsRes, lawsRes, circularsRes, newsRes, bannersRes, faqsRes, oppsRes, exhRes] = await Promise.all([
           axiosInstance.get("/board-members").catch(() => ({ data: [] })),
           axiosInstance.get("/projects").catch(() => ({ data: [] })),
           axiosInstance.get("/laws").catch(() => ({ data: [] })),
@@ -44,6 +48,8 @@ export default function PublicHome() {
           axiosInstance.get("/news").catch(() => ({ data: [] })),
           axiosInstance.get("/banners").catch(() => ({ data: [] })),
           axiosInstance.get("/faqs").catch(() => ({ data: [] })),
+          axiosInstance.get("/opportunities").catch(() => ({ data: [] })),
+          axiosInstance.get("/exhibitions").catch(() => ({ data: [] })),
         ]);
 
         setMembers(membersRes.data.filter((m: BoardMember) => m.isActive));
@@ -53,6 +59,8 @@ export default function PublicHome() {
         setNews(newsRes.data.filter((n: News) => n.isActive));
         setBanners(bannersRes.data.filter((b: Banner) => b.isActive));
         setFaqs(faqsRes.data.filter((f: Faq) => f.isActive));
+        setOpportunities(oppsRes.data.filter((o: Opportunity) => o.isActive));
+        setExhibitions(exhRes.data.filter((e: Exhibition) => e.isActive));
       } catch (error) {
         console.error(error);
       } finally {
@@ -105,10 +113,32 @@ export default function PublicHome() {
         </div>
       )}
 
+      {opportunities.length > 0 && (
+        <div id="opportunities">
+          <OpportunitiesSection opportunities={opportunities} />
+          <div className="text-center bg-white pb-5">
+            <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/opportunities')}>
+              عرض كافة الفرص <span className="material-symbols-outlined fs-5">arrow_back</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {exhibitions.length > 0 && (
+        <div id="exhibitions">
+          <ExhibitionsSection exhibitions={exhibitions} />
+          <div className="text-center bg-light pb-5 pt-3">
+            <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/exhibitions')}>
+              عرض كافة المعارض <span className="material-symbols-outlined fs-5">arrow_back</span>
+            </Button>
+          </div>
+        </div>
+      )}
+
       {projects.length > 0 && (
         <div id="projects">
           <ProjectsSection projects={projects} onSelectProject={setSelectedProject} />
-          <div className="text-center bg-light pb-5 pt-3">
+          <div className="text-center bg-white pb-5 pt-3">
             <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/projects')}>
               عرض كافة المشاريع <span className="material-symbols-outlined fs-5">arrow_back</span>
             </Button>
@@ -116,7 +146,6 @@ export default function PublicHome() {
         </div>
       )}
 
-      {/* 🟢 قسم القوانين والتعاميم مع الأزرار 🟢 */}
       <div id="laws-section">
         <LawsCircularsSection laws={laws} circulars={circulars} />
         <div className="text-center bg-white pb-5 d-flex justify-content-center flex-wrap gap-3">
@@ -129,7 +158,6 @@ export default function PublicHome() {
         </div>
       </div>
       
-      {/* 🟢 قسم الأعضاء مع الأزرار 🟢 */}
       <div id="board-members">
         <BoardMembersSection members={members} />
         <div className="text-center bg-light pb-5">
@@ -139,7 +167,6 @@ export default function PublicHome() {
         </div>
       </div>
 
-      {/* 🟢 قسم الأسئلة مع الأزرار 🟢 */}
       <div id="faqs-section">
         <FaqSection faqs={faqs} />
         <div className="text-center bg-white pb-5">
@@ -147,21 +174,6 @@ export default function PublicHome() {
              تصفح جميع الأسئلة <span className="material-symbols-outlined fs-5">help_center</span>
            </Button>
         </div>
-      </div>
-      
-      {/* 🟢 قسم الوصول السريع للفرص والمعارض 🟢 */}
-      <div className="py-5 text-center border-top border-bottom" style={{ backgroundColor: '#f0f5f4' }}>
-        <Container>
-          <h3 className="fw-bold text-primary mb-4">اكتشف المزيد من خدمات الغرفة</h3>
-          <div className="d-flex justify-content-center flex-wrap gap-3">
-             <Button variant="primary" className="rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow-sm hover-scale transition-all" onClick={() => navigate('/opportunities')}>
-               <span className="material-symbols-outlined fs-5">lightbulb</span> الفرص الاستثمارية والمناقصات
-             </Button>
-             <Button variant="primary" className="rounded-pill px-4 py-3 fw-bold d-inline-flex align-items-center gap-2 shadow-sm hover-scale transition-all" onClick={() => navigate('/exhibitions')}>
-               <span className="material-symbols-outlined fs-5">festival</span> المعارض والمؤتمرات
-             </Button>
-          </div>
-        </Container>
       </div>
 
       <div id="contact-section"><ContactSection /></div>

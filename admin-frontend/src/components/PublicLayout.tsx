@@ -1,6 +1,6 @@
 // src/components/PublicLayout.tsx
 import { useEffect, useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom"; 
 import { Container, Navbar, Nav, Row, Col } from "react-bootstrap";
 import axiosInstance from "../api/axiosInstance";
 import logoImg from '../../hamachamberlogo.svg';
@@ -10,21 +10,22 @@ interface PageItem {
   title: string; 
   slug: string; 
   isActive: boolean; 
-  isSecure: boolean; // 👈 أضف هذا السطر
+  isSecure: boolean;
 }
 interface MarketPrice { dollarPrice: string; gold21Price: string; }
 interface NewsItem { id: string; title: string; createdAt: string; isActive: boolean; }
 
 export default function PublicLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  
   const [pagesList, setPagesList] = useState<PageItem[]>([]);
   const [marketPrices, setMarketPrices] = useState<MarketPrice>({ dollarPrice: "0", gold21Price: "0" });
   const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
   
-  // حالة لتتبع القسم النشط أثناء التمرير
   const [activeSection, setActiveSection] = useState<string>('home');
+  const [expanded, setExpanded] = useState(false); 
 
-  // جلب البيانات الأساسية للـ Layout
   useEffect(() => {
     const fetchLayoutData = async () => {
       try {
@@ -34,21 +35,16 @@ export default function PublicLayout() {
           axiosInstance.get("/news").catch(() => ({ data: [] }))
         ]);
         
-// 👈 الآن نجلب فقط الصفحات المنشورة (isActive) والغير محمية (!isSecure)
-setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
+        setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
         if (pricesRes.data) setMarketPrices(pricesRes.data);
 
-        // معالجة الأخبار: جلب الأخبار النشطة فقط
         if (newsRes.data) {
           const activeNews = newsRes.data.filter((n: NewsItem) => n.isActive);
-          // ترتيب من الأحدث للأقدم
           const sortedNews = activeNews.sort((a: NewsItem, b: NewsItem) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
           
-          // فلترة أخبار آخر 24 ساعة
           const twentyFourHoursAgo = Date.now() - (24 * 60 * 60 * 1000);
           const recentNews = sortedNews.filter((n: NewsItem) => new Date(n.createdAt).getTime() > twentyFourHoursAgo);
           
-          // إذا لم يكن هناك أخبار في آخر 24 ساعة، اعرض أحدث 3 أخبار كبديل
           setLatestNews(recentNews.length > 0 ? recentNews : sortedNews.slice(0, 3));
         }
 
@@ -57,9 +53,12 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
     fetchLayoutData();
   }, []);
 
-  // ==========================================
-  // ربط الـ Scroll Spy لتتطابق مع PublicHome
-  // ==========================================
+  useEffect(() => {
+    if (!location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     const handleScroll = () => {
       if (location.pathname !== '/') {
@@ -67,8 +66,7 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
         return;
       }
 
-      // 👈 هذه المصفوفة مطابقة تماماً للـ div id الموجودة في PublicHome
-      const sections = ['about', 'news-section', 'projects', 'laws-section', 'board-members', 'faqs-section', 'contact-section'];
+      const sections = ['about', 'contact-section']; 
       let current = 'home';
 
       if (window.scrollY < 150) {
@@ -76,7 +74,6 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
         return;
       }
 
-      // نستخدم offsetTop لضمان التقاط الأقسام القصيرة
       const scrollPosition = window.scrollY + 250; 
 
       for (const sectionId of sections) {
@@ -91,7 +88,6 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
         }
       }
 
-      // لضمان التقاط آخر قسم (تواصل معنا) في حال الوصول لنهاية الصفحة
       if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 50) {
         current = 'contact-section';
       }
@@ -104,14 +100,29 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
     return () => window.removeEventListener('scroll', handleScroll);
   }, [location.pathname]);
 
+  const handleHashClick = (e: React.MouseEvent<HTMLElement>, hash: string) => {
+    e.preventDefault();
+    setExpanded(false); 
+    
+    if (location.pathname !== '/') {
+      navigate(`/${hash}`);
+    } else {
+      const elementId = hash.replace('#', '');
+      const element = document.getElementById(elementId);
+      if (element) {
+        const y = element.getBoundingClientRect().top + window.scrollY - 100; 
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <div className="min-vh-100 bg-light d-flex flex-column ">
       
-      {/* ================= Ticker Bar (شريط متحرك للأخبار والأسعار) ================= */}
+      {/* ================= Ticker Bar ================= */}
       <div className="ticker-wrap shadow-sm">
         <div className="ticker-move py-2">
           
-          {/* 1. قسم الأسعار */}
           <div className="ticker-item align-middle">
             <div className="d-inline-flex align-items-center gap-3">
               <span className="bg-gold text-primary px-2 py-1 rounded small fw-bolder shadow-sm" style={{ fontSize: '0.7rem' }}>مباشر</span>
@@ -130,7 +141,6 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
             </div>
           </div>
 
-          {/* 2. قسم الأخبار العاجلة */}
           {latestNews.map((news) => (
             <div key={news.id} className="ticker-item align-middle border-end border-white border-opacity-25 pe-4 me-4">
               <div className="d-inline-flex align-items-center gap-2">
@@ -140,7 +150,6 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
             </div>
           ))}
 
-          {/* 3. قسم التاريخ */}
           <div className="ticker-item align-middle border-end border-white border-opacity-25 pe-4 me-4">
             <div className="d-inline-flex align-items-center gap-2">
               <span className="material-symbols-outlined text-gold fs-6">calendar_month</span>
@@ -154,10 +163,15 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
       {/* ================= Header / Navbar ================= */}
       <header className="bg-white sticky-top border-bottom shadow-sm z-3 bg-opacity-75" style={{ backdropFilter: 'blur(12px)' }}>
         <Container fluid="xl" className="px-4">
-          <Navbar expand="xl" className="py-3 p-0" style={{ minHeight: '80px' }}>
+          <Navbar 
+            expanded={expanded} 
+            onToggle={(isOpen) => setExpanded(isOpen)} 
+            expand="xl" 
+            className="py-3 p-0" 
+            style={{ minHeight: '80px' }}
+          >
             
-          <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-3 m-0">
-              {/* 👈 قمنا بإزالة span الخاص بالأيقونات ووضعنا img */}
+          <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-3 m-0" onClick={() => setExpanded(false)}>
               <div className="bg-primary rounded-3 d-flex align-items-center justify-content-center shadow-inner overflow-hidden" style={{ width: '48px', height: '48px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' }}>
                 <img 
                   src={logoImg} 
@@ -171,44 +185,39 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
               </div>
             </Navbar.Brand>
 
-            <Navbar.Toggle aria-controls="basic-navbar-nav" className="border-0 shadow-none" />
+            <Navbar.Toggle aria-controls="basic-navbar-nav" className="border-0 shadow-none">
+               <span className="material-symbols-outlined text-primary fs-1">menu</span>
+            </Navbar.Toggle>
             
             <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="mx-auto gap-2 gap-xxl-4 fw-bold align-items-xl-center mt-3 mt-xl-0" style={{ fontSize: '0.95rem' }}>
-                <Nav.Link as={Link} to="/" className={`nav-link-interactive ${activeSection === 'home' && location.pathname === '/' ? 'active-section' : ''}`}>الرئيسية</Nav.Link>
+              <Nav className="mx-auto gap-2 gap-xxl-3 fw-bold align-items-xl-center mt-3 mt-xl-0" style={{ fontSize: '0.90rem' }}>
+                <Nav.Link as={Link} to="/" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname === '/' ? 'active-section' : ''}`}>الرئيسية</Nav.Link>
                 
-                <Nav.Link href="/#about" className={`nav-link-interactive ${activeSection === 'about' ? 'active-section' : ''}`}>عن الغرفة</Nav.Link>
+                <Nav.Link href="/#about" onClick={(e) => handleHashClick(e, '#about')} className={`nav-link-interactive ${activeSection === 'about' ? 'active-section' : ''}`}>عن الغرفة</Nav.Link>
                 
-                {/* 👈 الروابط المطابقة تماماً لـ PublicHome */}
-              
-                <Nav.Link href="/#news-section" className={`nav-link-interactive ${activeSection === 'news-section' ? 'active-section' : ''}`}>المركز الإعلامي</Nav.Link>
-                <Nav.Link href="/#projects" className={`nav-link-interactive ${activeSection === 'projects' ? 'active-section' : ''}`}>المشاريع</Nav.Link>
-                <Nav.Link href="/#laws-section" className={`nav-link-interactive ${activeSection === 'laws-section' ? 'active-section' : ''}`}>القرارات</Nav.Link>
-
-                <Nav.Link href="/#board-members" className={`nav-link-interactive ${activeSection === 'board-members' ? 'active-section' : ''}`}>أعضاء المجلس</Nav.Link>
-
-                <Nav.Link href="/#faqs-section" className={`nav-link-interactive ${activeSection === 'faqs-section' ? 'active-section' : ''}`}>الأسئلة الشائعة</Nav.Link>
+                {/* 👇 تم حل مشكلة TypeScript باستخدام location.pathname بدلاً من isActive 👇 */}
+                <Nav.Link as={Link} to="/news" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/news') ? 'active-section' : ''}`}>المركز الإعلامي</Nav.Link>
+                <Nav.Link as={Link} to="/projects" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/projects') ? 'active-section' : ''}`}>المشاريع</Nav.Link>
+                <Nav.Link as={Link} to="/opportunities" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/opportunities') ? 'active-section' : ''}`}>الفرص</Nav.Link>
+                <Nav.Link as={Link} to="/exhibitions" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/exhibitions') ? 'active-section' : ''}`}>المعارض</Nav.Link>
+                <Nav.Link as={Link} to="/laws" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/laws') ? 'active-section' : ''}`}>القرارات</Nav.Link>
+                <Nav.Link as={Link} to="/board-members" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/board-members') ? 'active-section' : ''}`}>أعضاء المجلس</Nav.Link>
+                <Nav.Link as={Link} to="/faqs" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/faqs') ? 'active-section' : ''}`}>الأسئلة</Nav.Link>
 
                 {pagesList.map((page) => (
-                  <Nav.Link as={Link} to={`/page/${page.slug}`} key={page.id} className={`nav-link-interactive ${location.pathname === `/page/${page.slug}` ? 'active-section' : ''}`}>
+                  <Nav.Link as={Link} to={`/page/${page.slug}`} key={page.id} onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname === `/page/${page.slug}` ? 'active-section' : ''}`}>
                     {page.title}
                   </Nav.Link>
                 ))}
 
-                <Nav.Link as={Link} to="/jobs" className={`nav-link-interactive ${location.pathname === '/jobs' ? 'active-section' : ''}`}>فرص العمل</Nav.Link>
+                <Nav.Link as={Link} to="/jobs" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname === '/jobs' ? 'active-section' : ''}`}>فرص العمل</Nav.Link>
 
-{/* 👇 الرابط الخارجي الجديد لمنصة الدليل التجاري */}
-<Nav.Link 
-  href="https://hamatrade.sy/" 
-  target="_blank" 
-  rel="noopener noreferrer" 
-  className="nav-link-interactive d-flex align-items-center gap-1"
->
-  منصة الدليل التجاري والصناعي
-  </Nav.Link>
-                <Nav.Link href="/#contact-section" className={`nav-link-interactive ${activeSection === 'contact-section' ? 'active-section' : ''}`}>اتصل بنا</Nav.Link>
+                <Nav.Link href="https://hamatrade.sy/" target="_blank" rel="noopener noreferrer" className="nav-link-interactive d-flex align-items-center gap-1" onClick={() => setExpanded(false)}>
+                  منصة الدليل 
+                </Nav.Link>
+                
+                <Nav.Link href="/#contact-section" onClick={(e) => handleHashClick(e, '#contact-section')} className={`nav-link-interactive ${activeSection === 'contact-section' ? 'active-section' : ''}`}>اتصل بنا</Nav.Link>
               </Nav>
-
             </Navbar.Collapse>
           </Navbar>
         </Container>
@@ -251,19 +260,19 @@ setPagesList(pagesRes.data.filter((p: PageItem) => p.isActive && !p.isSecure));
               <h3 className="h5 footer-heading">روابط سريعة</h3>
               <ul className="list-unstyled space-y-3 text-white-50 mt-4">
                 <li className="mb-3"><Link to="/jobs" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>فرص العمل</Link></li>
-                <li className="mb-3"><a href="/#about" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>عن الغرفة</a></li>
+                <li className="mb-3"><a href="/#about" onClick={(e) => handleHashClick(e, '#about')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>عن الغرفة</a></li>
                 <li className="mb-3"><a href="#" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>سجل المنتسبين</a></li>
-                <li className="mb-3"><a href="/#news-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>المركز الإعلامي</a></li>
+                <li className="mb-3"><Link to="/news" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>المركز الإعلامي</Link></li>
               </ul>
             </Col>
 
             <Col lg={3} md={6}>
               <h3 className="h5 footer-heading">التشريعات</h3>
               <ul className="list-unstyled space-y-3 text-white-50 mt-4">
-                <li className="mb-3"><a href="/#laws-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون التجارة السوري</a></li>
-                <li className="mb-3"><a href="/#laws-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون الاستثمار الجديد</a></li>
-                <li className="mb-3"><a href="/#laws-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>أنظمة الغرف التجارية</a></li>
-                <li className="mb-3"><a href="/#laws-section" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>الجريدة الرسمية</a></li>
+                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون التجارة السوري</Link></li>
+                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون الاستثمار الجديد</Link></li>
+                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>أنظمة الغرف التجارية</Link></li>
+                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>الجريدة الرسمية</Link></li>
               </ul>
             </Col>
 

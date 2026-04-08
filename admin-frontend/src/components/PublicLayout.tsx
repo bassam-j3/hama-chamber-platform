@@ -59,6 +59,9 @@ export default function PublicLayout() {
     }
   }, [location.pathname]);
 
+  // ==========================================
+  // 👇 تم استعادة الـ Scroll Spy لكل الأقسام 👇
+  // ==========================================
   useEffect(() => {
     const handleScroll = () => {
       if (location.pathname !== '/') {
@@ -66,7 +69,8 @@ export default function PublicLayout() {
         return;
       }
 
-      const sections = ['about', 'contact-section']; 
+      // أضفنا كل المعرفات (IDs) الموجودة في الصفحة الرئيسية ليتعرف عليها الـ ScrollSpy
+      const sections = ['about', 'news-section', 'opportunities', 'exhibitions', 'projects', 'laws-section', 'board-members', 'faqs-section', 'contact-section']; 
       let current = 'home';
 
       if (window.scrollY < 150) {
@@ -105,6 +109,7 @@ export default function PublicLayout() {
     setExpanded(false); 
     
     if (location.pathname !== '/') {
+      // يوجهك للرئيسية وينزل للقسم فوراً وليس لأعلى الصفحة
       navigate(`/${hash}`);
     } else {
       const elementId = hash.replace('#', '');
@@ -191,18 +196,17 @@ export default function PublicLayout() {
             
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="mx-auto gap-2 gap-xxl-3 fw-bold align-items-xl-center mt-3 mt-xl-0" style={{ fontSize: '0.90rem' }}>
-                <Nav.Link as={Link} to="/" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname === '/' ? 'active-section' : ''}`}>الرئيسية</Nav.Link>
+                <Nav.Link as={Link} to="/" onClick={() => setExpanded(false)} className={`nav-link-interactive ${activeSection === 'home' && location.pathname === '/' ? 'active-section' : ''}`}>الرئيسية</Nav.Link>
                 
+                {/* 👇 تم إعادة جميع الروابط للاعتماد على الهاش والـ activeSection 👇 */}
                 <Nav.Link href="/#about" onClick={(e) => handleHashClick(e, '#about')} className={`nav-link-interactive ${activeSection === 'about' ? 'active-section' : ''}`}>عن الغرفة</Nav.Link>
-                
-                {/* 👇 تم حل مشكلة TypeScript باستخدام location.pathname بدلاً من isActive 👇 */}
-                <Nav.Link as={Link} to="/news" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/news') ? 'active-section' : ''}`}>المركز الإعلامي</Nav.Link>
-                <Nav.Link as={Link} to="/projects" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/projects') ? 'active-section' : ''}`}>المشاريع</Nav.Link>
-                <Nav.Link as={Link} to="/opportunities" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/opportunities') ? 'active-section' : ''}`}>الفرص</Nav.Link>
-                <Nav.Link as={Link} to="/exhibitions" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/exhibitions') ? 'active-section' : ''}`}>المعارض</Nav.Link>
-                <Nav.Link as={Link} to="/laws" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/laws') ? 'active-section' : ''}`}>القرارات</Nav.Link>
-                <Nav.Link as={Link} to="/board-members" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/board-members') ? 'active-section' : ''}`}>أعضاء المجلس</Nav.Link>
-                <Nav.Link as={Link} to="/faqs" onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname.startsWith('/faqs') ? 'active-section' : ''}`}>الأسئلة</Nav.Link>
+                <Nav.Link href="/#news-section" onClick={(e) => handleHashClick(e, '#news-section')} className={`nav-link-interactive ${activeSection === 'news-section' ? 'active-section' : ''}`}>المركز الإعلامي</Nav.Link>
+                <Nav.Link href="/#projects" onClick={(e) => handleHashClick(e, '#projects')} className={`nav-link-interactive ${activeSection === 'projects' ? 'active-section' : ''}`}>المشاريع</Nav.Link>
+                <Nav.Link href="/#opportunities" onClick={(e) => handleHashClick(e, '#opportunities')} className={`nav-link-interactive ${activeSection === 'opportunities' ? 'active-section' : ''}`}>الفرص</Nav.Link>
+                <Nav.Link href="/#exhibitions" onClick={(e) => handleHashClick(e, '#exhibitions')} className={`nav-link-interactive ${activeSection === 'exhibitions' ? 'active-section' : ''}`}>المعارض</Nav.Link>
+                <Nav.Link href="/#laws-section" onClick={(e) => handleHashClick(e, '#laws-section')} className={`nav-link-interactive ${activeSection === 'laws-section' ? 'active-section' : ''}`}>القرارات</Nav.Link>
+                <Nav.Link href="/#board-members" onClick={(e) => handleHashClick(e, '#board-members')} className={`nav-link-interactive ${activeSection === 'board-members' ? 'active-section' : ''}`}>أعضاء المجلس</Nav.Link>
+                <Nav.Link href="/#faqs-section" onClick={(e) => handleHashClick(e, '#faqs-section')} className={`nav-link-interactive ${activeSection === 'faqs-section' ? 'active-section' : ''}`}>الأسئلة</Nav.Link>
 
                 {pagesList.map((page) => (
                   <Nav.Link as={Link} to={`/page/${page.slug}`} key={page.id} onClick={() => setExpanded(false)} className={`nav-link-interactive ${location.pathname === `/page/${page.slug}` ? 'active-section' : ''}`}>
@@ -262,17 +266,17 @@ export default function PublicLayout() {
                 <li className="mb-3"><Link to="/jobs" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>فرص العمل</Link></li>
                 <li className="mb-3"><a href="/#about" onClick={(e) => handleHashClick(e, '#about')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>عن الغرفة</a></li>
                 <li className="mb-3"><a href="#" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>سجل المنتسبين</a></li>
-                <li className="mb-3"><Link to="/news" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>المركز الإعلامي</Link></li>
+                <li className="mb-3"><a href="/#news-section" onClick={(e) => handleHashClick(e, '#news-section')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>المركز الإعلامي</a></li>
               </ul>
             </Col>
 
             <Col lg={3} md={6}>
               <h3 className="h5 footer-heading">التشريعات</h3>
               <ul className="list-unstyled space-y-3 text-white-50 mt-4">
-                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون التجارة السوري</Link></li>
-                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون الاستثمار الجديد</Link></li>
-                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>أنظمة الغرف التجارية</Link></li>
-                <li className="mb-3"><Link to="/laws" className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>الجريدة الرسمية</Link></li>
+                <li className="mb-3"><a href="/#laws-section" onClick={(e) => handleHashClick(e, '#laws-section')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون التجارة السوري</a></li>
+                <li className="mb-3"><a href="/#laws-section" onClick={(e) => handleHashClick(e, '#laws-section')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>قانون الاستثمار الجديد</a></li>
+                <li className="mb-3"><a href="/#laws-section" onClick={(e) => handleHashClick(e, '#laws-section')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>أنظمة الغرف التجارية</a></li>
+                <li className="mb-3"><a href="/#laws-section" onClick={(e) => handleHashClick(e, '#laws-section')} className="text-white-50 text-decoration-none hover-text-gold transition-all d-flex align-items-center gap-2"><span className="gold-dot"></span>الجريدة الرسمية</a></li>
               </ul>
             </Col>
 

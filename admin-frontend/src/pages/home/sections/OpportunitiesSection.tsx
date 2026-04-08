@@ -6,7 +6,7 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
   if (!opportunities || opportunities.length === 0) return null;
   
   return (
-    <section id="opportunities-section" className="py-5 bg-white" dir="rtl">
+    <section id="opportunities" className="py-5 bg-white" dir="rtl">
       <Container className="py-5">
         <div className="mb-5">
           <h2 className="h2 fw-bold text-primary d-flex align-items-center gap-3 mb-2">
@@ -17,9 +17,11 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
         </div>
         <Row className="g-4">
           {opportunities.slice(0, 3).map((item) => (
-            <Col lg={4} md={6} sm={12} key={item.id}>
-              <Card className="h-100 border-0 rounded-4 overflow-hidden shadow-sm hover-translate-y transition-all bg-white">
-                 <div className="position-relative bg-light" style={{ height: "200px" }}>
+            /* 👈 تحديد واضح لتصرف العمود على كافة الشاشات */
+            <Col xs={12} sm={6} lg={4} key={item.id}>
+              <Card className="h-100 border-0 rounded-4 overflow-hidden shadow-sm hover-translate-y transition-all bg-white d-flex flex-column">
+                 {/* 👈 استخدام نسبة العرض للارتفاع بدلاً من الارتفاع الثابت */}
+                 <div className="position-relative bg-light w-100" style={{ aspectRatio: '16/9' }}>
                   {item.imageUrl ? (
                     <Card.Img variant="top" src={item.imageUrl} className="w-100 h-100 object-fit-cover" />
                   ) : (
@@ -31,9 +33,12 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
                     فرصة متاحة
                   </Badge>
                 </div>
-                <Card.Body className="p-4 d-flex flex-column">
+                {/* 👈 استخدام flex-grow-1 لملء الفراغ المتبقي */}
+                <Card.Body className="p-4 d-flex flex-column flex-grow-1">
                   <Card.Title className="h5 fw-bold text-dark mb-3 lh-base">{item.title}</Card.Title>
                   <Card.Text className="text-secondary small mb-4 line-clamp-3">{stripHtml(item.content)}</Card.Text>
+                  
+                  {/* 👈 استخدام mt-auto لدفع هذا العنصر لأسفل البطاقة دائماً */}
                   <div className="mt-auto d-flex align-items-center gap-2 text-muted small border-top pt-3">
                     <span className="material-symbols-outlined fs-6">calendar_month</span>
                     <span>تاريخ الطرح: {formatDate(item.createdAt)}</span>

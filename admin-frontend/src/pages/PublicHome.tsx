@@ -19,6 +19,8 @@ import NewsModal from "./home/NewsModal";
 import ProjectModal from "./home/ProjectModal";
 import OpportunityModal from "./home/OpportunityModal";
 import ExhibitionModal from "./home/ExhibitionModal";
+import LawModal from "./home/LawModal";
+import CircularModal from "./home/CircularModal";
 
 export default function PublicHome() {
   const location = useLocation();
@@ -35,10 +37,14 @@ export default function PublicHome() {
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
+  // States for all Modals
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [selectedExhibition, setSelectedExhibition] = useState<Exhibition | null>(null);
+  const [selectedLaw, setSelectedLaw] = useState<Law | null>(null);
+  const [selectedCircular, setSelectedCircular] = useState<Circular | null>(null);
 
   useEffect(() => {
     const fetchPublicData = async () => {
@@ -150,16 +156,14 @@ export default function PublicHome() {
         </div>
       )}
 
+      {/* 👇 القسم المحدث بالكامل 👇 */}
       <div id="laws-section">
-        <LawsCircularsSection laws={laws} circulars={circulars} />
-        <div className="text-center bg-white pb-5 d-flex justify-content-center flex-wrap gap-3">
-           <Button variant="outline-primary" className="rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/laws')}>
-             عرض كافة القوانين <span className="material-symbols-outlined fs-5">gavel</span>
-           </Button>
-           <Button variant="outline-info" className="rounded-pill px-4 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all text-dark" onClick={() => navigate('/circulars')}>
-             عرض كافة التعاميم <span className="material-symbols-outlined fs-5">assignment</span>
-           </Button>
-        </div>
+        <LawsCircularsSection 
+          laws={laws} 
+          circulars={circulars} 
+          onSelectLaw={setSelectedLaw}
+          onSelectCircular={setSelectedCircular}
+        />
       </div>
       
       <div id="board-members">
@@ -182,10 +186,13 @@ export default function PublicHome() {
 
       <div id="contact-section"><ContactSection /></div>
 
+      {/* 👇 جميع النوافذ المنبثقة جاهزة للعمل 👇 */}
       <NewsModal news={selectedNews} onClose={() => setSelectedNews(null)} />
       <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
       <OpportunityModal opportunity={selectedOpportunity} onClose={() => setSelectedOpportunity(null)} />
       <ExhibitionModal exhibition={selectedExhibition} onClose={() => setSelectedExhibition(null)} />
+      <LawModal law={selectedLaw} onClose={() => setSelectedLaw(null)} />
+      <CircularModal circular={selectedCircular} onClose={() => setSelectedCircular(null)} />
     </div>
   );
 }

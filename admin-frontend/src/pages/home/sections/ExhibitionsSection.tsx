@@ -11,7 +11,6 @@ export default function ExhibitionsSection({ exhibitions }: { exhibitions: Exhib
     <section id="exhibitions" className="py-5 bg-light" dir="rtl">
       <Container className="py-5">
         
-        {/* ================= Tرويسة القسم (مطابقة للأخبار) ================= */}
         <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-5">
           <div>
             <h2 className="h2 fw-bold text-primary d-flex align-items-center gap-3 mb-2">
@@ -26,15 +25,16 @@ export default function ExhibitionsSection({ exhibitions }: { exhibitions: Exhib
           </Link>
         </div>
 
-        {/* ================= شبكة البطاقات (مطابقة لـ NewsCard) ================= */}
         <Row className="g-4">
           {exhibitions.slice(0, 3).map((item) => (
             <Col lg={4} md={6} sm={12} key={item.id}>
+              {/* 👈 تم استنساخ NewsCard بدقة هنا 👇 */}
               <Card 
-                className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer"
+                className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer" 
                 onClick={() => navigate('/exhibitions')}
+                style={{ cursor: 'pointer' }}
               >
-                 <div className="position-relative overflow-hidden" style={{ height: "240px" }}>
+                <div className="position-relative overflow-hidden" style={{ height: "240px" }}>
                   {item.imageUrl ? (
                     <Card.Img 
                       variant="top" 
@@ -53,7 +53,7 @@ export default function ExhibitionsSection({ exhibitions }: { exhibitions: Exhib
                 </div>
                 <Card.Body className="p-4 d-flex flex-column">
                   <div className="d-flex align-items-center gap-2 text-secondary small mb-3">
-                    <span className="material-symbols-outlined fs-6">calendar_today</span>
+                    <span className="material-symbols-outlined fs-6">calendar_today</span> 
                     <span className="fw-medium">{formatDate(item.createdAt)}</span>
                   </div>
                   <Card.Title className="h5 fw-bold mb-3 lh-base text-dark group-hover-text-primary transition-all line-clamp-2">

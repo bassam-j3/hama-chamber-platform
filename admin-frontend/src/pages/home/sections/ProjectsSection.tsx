@@ -15,7 +15,6 @@ export default function ProjectsSection({ projects, onSelectProject }: ProjectsS
     <section id="projects" className="py-5 bg-light" dir="rtl">
       <Container className="py-5">
         
-        {/* ================= Tرويسة القسم (مطابقة للأخبار) ================= */}
         <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-5">
           <div>
             <h2 className="h2 fw-bold text-primary d-flex align-items-center gap-3 mb-2">
@@ -30,13 +29,14 @@ export default function ProjectsSection({ projects, onSelectProject }: ProjectsS
           </Link>
         </div>
         
-        {/* ================= شبكة البطاقات (مطابقة لـ NewsCard) ================= */}
         <Row className="g-4">
           {projects.slice(0, 3).map((item) => (
             <Col lg={4} md={6} sm={12} key={item.id}>
+              {/* 👈 تم استنساخ NewsCard بدقة هنا 👇 */}
               <Card 
-                className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer"
+                className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer" 
                 onClick={() => onSelectProject(item)}
+                style={{ cursor: 'pointer' }}
               >
                 <div className="position-relative overflow-hidden" style={{ height: "240px" }}>
                   {item.imageUrl ? (

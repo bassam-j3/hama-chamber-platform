@@ -11,7 +11,6 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
     <section id="opportunities" className="py-5 bg-white" dir="rtl">
       <Container className="py-5">
         
-        {/* ================= Tرويسة القسم (مطابقة للأخبار) ================= */}
         <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-5">
           <div>
             <h2 className="h2 fw-bold text-primary d-flex align-items-center gap-3 mb-2">
@@ -26,15 +25,16 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
           </Link>
         </div>
 
-        {/* ================= شبكة البطاقات (مطابقة لـ NewsCard) ================= */}
         <Row className="g-4">
           {opportunities.slice(0, 3).map((item) => (
             <Col lg={4} md={6} sm={12} key={item.id}>
+              {/* 👈 تم استنساخ NewsCard بدقة هنا 👇 */}
               <Card 
-                className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer"
+                className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer" 
                 onClick={() => navigate('/opportunities')}
+                style={{ cursor: 'pointer' }}
               >
-                 <div className="position-relative overflow-hidden" style={{ height: "240px" }}>
+                <div className="position-relative overflow-hidden" style={{ height: "240px" }}>
                   {item.imageUrl ? (
                     <Card.Img 
                       variant="top" 
@@ -47,13 +47,13 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
                        <span className="material-symbols-outlined fs-1">handshake</span>
                     </div>
                   )}
-                  <Badge bg="warning" text="dark" className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-2 shadow bg-opacity-90 fw-normal">
+                  <Badge bg="warning" className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-2 shadow bg-opacity-90 fw-normal text-dark">
                     فرصة متاحة
                   </Badge>
                 </div>
                 <Card.Body className="p-4 d-flex flex-column">
                   <div className="d-flex align-items-center gap-2 text-secondary small mb-3">
-                    <span className="material-symbols-outlined fs-6">calendar_today</span>
+                    <span className="material-symbols-outlined fs-6">calendar_today</span> 
                     <span className="fw-medium">{formatDate(item.createdAt)}</span>
                   </div>
                   <Card.Title className="h5 fw-bold mb-3 lh-base text-dark group-hover-text-primary transition-all line-clamp-2">

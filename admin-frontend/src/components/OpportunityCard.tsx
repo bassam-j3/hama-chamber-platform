@@ -1,13 +1,13 @@
 import { Card, Badge } from 'react-bootstrap';
 import { formatDate, stripHtml } from '../utils/format';
-import type { Project } from '../types/public';
+import type { Opportunity } from '../types/public';
 
-interface ProjectCardProps {
-  item: Project;
-  onClick: (item: Project) => void;
+interface OpportunityCardProps {
+  item: Opportunity;
+  onClick: (item: Opportunity) => void;
 }
 
-export default function ProjectCard({ item, onClick }: ProjectCardProps) {
+export default function OpportunityCard({ item, onClick }: OpportunityCardProps) {
   return (
     <Card 
       className="h-100 border border-light rounded-4 overflow-hidden hover-translate-y hover-shadow-lg transition-all group bg-white cursor-pointer" 
@@ -24,11 +24,11 @@ export default function ProjectCard({ item, onClick }: ProjectCardProps) {
           />
         ) : (
           <div className="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-muted">
-             <span className="material-symbols-outlined fs-1">domain</span>
+             <span className="material-symbols-outlined fs-1">handshake</span>
           </div>
         )}
-        <Badge bg="success" className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-2 shadow bg-opacity-90 fw-normal">
-          مشروع تنموي
+        <Badge bg="warning" className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-2 shadow bg-opacity-90 fw-normal text-dark">
+          فرصة متاحة
         </Badge>
       </div>
       <Card.Body className="p-4 d-flex flex-column">

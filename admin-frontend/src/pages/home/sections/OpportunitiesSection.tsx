@@ -1,10 +1,14 @@
 import { Container, Row, Col } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { Opportunity } from "../../../types/public";
 import OpportunityCard from "../../../components/OpportunityCard";
 
-export default function OpportunitiesSection({ opportunities }: { opportunities: Opportunity[] }) {
-  const navigate = useNavigate();
+interface OpportunitiesSectionProps {
+  opportunities: Opportunity[];
+  onSelectOpportunity: (item: Opportunity) => void;
+}
+
+export default function OpportunitiesSection({ opportunities, onSelectOpportunity }: OpportunitiesSectionProps) {
   if (!opportunities || opportunities.length === 0) return null;
   
   return (
@@ -26,7 +30,8 @@ export default function OpportunitiesSection({ opportunities }: { opportunities:
         <Row className="g-4">
           {opportunities.slice(0, 3).map((item) => (
             <Col lg={4} md={6} sm={12} key={item.id}>
-              <OpportunityCard item={item} onClick={() => navigate('/opportunities')} />
+              {/* 👇 هنا تم الإصلاح: تمرير الدالة لفتح النافذة بدلاً من التوجيه 👇 */}
+              <OpportunityCard item={item} onClick={onSelectOpportunity} />
             </Col>
           ))}
         </Row>

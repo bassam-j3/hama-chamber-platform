@@ -17,6 +17,8 @@ import {
 } from "./home/sections";
 import NewsModal from "./home/NewsModal";
 import ProjectModal from "./home/ProjectModal";
+import OpportunityModal from "./home/OpportunityModal";
+import ExhibitionModal from "./home/ExhibitionModal";
 
 export default function PublicHome() {
   const location = useLocation();
@@ -35,6 +37,8 @@ export default function PublicHome() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedNews, setSelectedNews] = useState<News | null>(null);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+  const [selectedExhibition, setSelectedExhibition] = useState<Exhibition | null>(null);
 
   useEffect(() => {
     const fetchPublicData = async () => {
@@ -115,7 +119,7 @@ export default function PublicHome() {
 
       {opportunities.length > 0 && (
         <div id="opportunities">
-          <OpportunitiesSection opportunities={opportunities} />
+          <OpportunitiesSection opportunities={opportunities} onSelectOpportunity={setSelectedOpportunity} />
           <div className="text-center bg-white pb-5">
             <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/opportunities')}>
               عرض كافة الفرص <span className="material-symbols-outlined fs-5">arrow_back</span>
@@ -126,7 +130,7 @@ export default function PublicHome() {
 
       {exhibitions.length > 0 && (
         <div id="exhibitions">
-          <ExhibitionsSection exhibitions={exhibitions} />
+          <ExhibitionsSection exhibitions={exhibitions} onSelectExhibition={setSelectedExhibition} />
           <div className="text-center bg-light pb-5 pt-3">
             <Button variant="outline-primary" className="rounded-pill px-5 py-2 fw-bold d-inline-flex align-items-center gap-2 hover-scale transition-all" onClick={() => navigate('/exhibitions')}>
               عرض كافة المعارض <span className="material-symbols-outlined fs-5">arrow_back</span>
@@ -180,6 +184,8 @@ export default function PublicHome() {
 
       <NewsModal news={selectedNews} onClose={() => setSelectedNews(null)} />
       <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+      <OpportunityModal opportunity={selectedOpportunity} onClose={() => setSelectedOpportunity(null)} />
+      <ExhibitionModal exhibition={selectedExhibition} onClose={() => setSelectedExhibition(null)} />
     </div>
   );
 }

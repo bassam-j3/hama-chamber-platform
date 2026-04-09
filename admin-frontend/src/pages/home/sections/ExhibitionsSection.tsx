@@ -1,10 +1,14 @@
 import { Container, Row, Col } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { Exhibition } from "../../../types/public";
 import ExhibitionCard from "../../../components/ExhibitionCard";
 
-export default function ExhibitionsSection({ exhibitions }: { exhibitions: Exhibition[] }) {
-  const navigate = useNavigate();
+interface ExhibitionsSectionProps {
+  exhibitions: Exhibition[];
+  onSelectExhibition: (item: Exhibition) => void;
+}
+
+export default function ExhibitionsSection({ exhibitions, onSelectExhibition }: ExhibitionsSectionProps) {
   if (!exhibitions || exhibitions.length === 0) return null;
 
   return (
@@ -26,7 +30,8 @@ export default function ExhibitionsSection({ exhibitions }: { exhibitions: Exhib
         <Row className="g-4">
           {exhibitions.slice(0, 3).map((item) => (
             <Col lg={4} md={6} sm={12} key={item.id}>
-              <ExhibitionCard item={item} onClick={() => navigate('/exhibitions')} />
+              {/* 👇 هنا تم الإصلاح: تمرير الدالة لفتح النافذة بدلاً من التوجيه 👇 */}
+              <ExhibitionCard item={item} onClick={onSelectExhibition} />
             </Col>
           ))}
         </Row>

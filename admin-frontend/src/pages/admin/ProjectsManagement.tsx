@@ -28,7 +28,7 @@ export default function ProjectsManagement() {
     try { 
       const response = await axiosInstance.get("/projects"); 
       setProjects(response.data); 
-    } catch (err: any) { 
+    } catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى.");
     } finally { 
       setIsLoading(false); 

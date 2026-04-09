@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axiosInstance from '../api/axiosInstance';
 
@@ -19,26 +20,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  // استرجاع الجلسة عند تحديث الصفحة
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+  const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
     }
-  }, []);
+  });
+  
+  const [token, setToken] = useState<string | null>(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+      return storedToken;
+    }
+    return null;
+  });
+
+  // Keep axios header in sync if token changes manually (though it's handled in login/logout)
+  useEffect(() => {
+    if (token) {
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axiosInstance.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
   };
 
   const logout = () => {
@@ -46,7 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    delete axiosInstance.defaults.headers.common['Authorization'];
   };
 
   return (
@@ -56,6 +68,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Moved useAuth hook logic if needed, but keeping it here should be fine for most setups.
+// If react-refresh still complains, we might need to move this to a separate file.
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

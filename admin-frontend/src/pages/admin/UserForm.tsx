@@ -18,7 +18,7 @@ export default function UserForm() {
       const u = location.state.userItem;
       setFormData({ name: u.name, email: u.email, password: '', role: u.role || 'EDITOR', isActive: u.isActive });
     }
-  }, [id, location.state]);
+  }, [id, location.state, isEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +31,7 @@ export default function UserForm() {
     const toastId = toast.loading(isEdit ? 'جاري تحديث بيانات المستخدم...' : 'جاري إضافة المستخدم...');
 
     try {
-      const payload: any = { ...formData };
+      const payload: Partial<typeof formData> = { ...formData };
       if (isEdit && !payload.password) delete payload.password;
 
       if (isEdit) {
@@ -43,8 +43,9 @@ export default function UserForm() {
       }
       
       navigate('/admin/users', { replace: true });
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم', { id: toastId });
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }

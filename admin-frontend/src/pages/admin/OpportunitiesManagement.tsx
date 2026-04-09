@@ -21,7 +21,7 @@ export default function OpportunitiesManagement() {
       const response = await axiosInstance.get("/opportunities"); 
       setData(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب الفرص الاستثمارية');
     } 

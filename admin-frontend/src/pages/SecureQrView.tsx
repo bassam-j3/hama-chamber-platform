@@ -6,7 +6,7 @@ import axiosInstance from '../api/axiosInstance';
 export default function SecureQrView() {
   const { token } = useParams();
   const navigate = useNavigate();
-  const [pageData, setPageData] = useState<any>(null);
+  const [pageData, setPageData] = useState<{ title: string; content: string; image?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -23,7 +23,7 @@ export default function SecureQrView() {
         const slug = decodedRaw.split('|||')[0];
         const response = await axiosInstance.get(`/pages/slug/${slug}`);
         setPageData(response.data);
-      } catch (err) {
+      } catch {
         setError(true);
       } finally {
         setLoading(false);

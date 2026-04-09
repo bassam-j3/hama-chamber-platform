@@ -23,8 +23,9 @@ export default function Login() {
       login(response.data.access_token, response.data.user);
       // التوجيه للوحة التحكم
       navigate('/admin');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل تسجيل الدخول، يرجى التأكد من البيانات');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'فشل تسجيل الدخول، يرجى التأكد من البيانات');
     } finally {
       setIsLoading(false);
     }

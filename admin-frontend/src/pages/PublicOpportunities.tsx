@@ -15,7 +15,7 @@ export default function PublicOpportunities() {
     try {
       const response = await axiosInstance.get('/opportunities');
       setData(response.data.filter((i: Opportunity) => i.isActive));
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل الفرص الاستثمارية.');
     } finally { setLoading(false); }
   };

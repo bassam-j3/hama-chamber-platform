@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 
 const pageSchema = z.object({
   title: z.string().min(3, "عنوان الصفحة مطلوب"),
-  slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9\u0600-\u06FF\-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية أو عربية وأرقام وشرطات (-) فقط"),
+  slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9\u0600-\u06FF-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية أو عربية وأرقام وشرطات (-) فقط"),
   content: z.string().min(10, "محتوى الصفحة مطلوب"),
   isActive: z.boolean(),
   isSecure: z.boolean(),
@@ -41,10 +41,18 @@ export default function PageForm() {
 
   useEffect(() => {
     if (!id && titleValue) {
-      const generatedSlug = titleValue.trim().replace(/[\s_]+/g, '-').replace(/[^\w\u0600-\u06FF\-]+/g, ''); 
+      const generatedSlug = titleValue.trim().replace(/[\s_]+/g, '-').replace(/[^\w\u0600-\u06FF-]+/g, ''); 
       setValue("slug", generatedSlug, { shouldValidate: true });
     }
   }, [titleValue, id, setValue]);
+
+  const populateForm = useCallback((data: { title: string; slug: string; content: string; isActive: boolean; isSecure?: boolean }) => {
+    setValue("title", data.title);
+    setValue("slug", data.slug);
+    setValue("content", data.content);
+    setValue("isActive", data.isActive);
+    setValue("isSecure", data.isSecure || false);
+  }, [setValue]);
 
   useEffect(() => {
     if (id) {
@@ -54,26 +62,17 @@ export default function PageForm() {
       } else {
         setIsLoading(true);
         axiosInstance.get("/pages")
-          .then((res: any) => { 
-            const item = res.data.find((p: any) => p.id === id);
+          .then((res: { data: Array<{ id: string; title: string; slug: string; content: string; isActive: boolean; isSecure?: boolean }> }) => { 
+            const item = res.data.find((p) => p.id === id);
             if (item) populateForm(item);
           })
-          .catch((err: any) => {
-              console.error(err);
+          .catch(() => {
               toast.error("فشل تحميل بيانات الصفحة");
           }) 
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("slug", data.slug);
-    setValue("content", data.content);
-    setValue("isActive", data.isActive);
-    setValue("isSecure", data.isSecure || false);
-  };
+  }, [id, location.state, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -95,7 +94,8 @@ export default function PageForm() {
         navigate('/admin/pages');
       }
 
-    } catch (error: any) { 
+    } catch (err: unknown) { 
+      const error = err as { response?: { data?: { message?: string } } };
       if(error.response?.data?.message?.includes('Unique constraint')) {
         toast.error("هذا الرابط (Slug) مستخدم لصفحة أخرى، يرجى تغييره.", { id: toastId });
       } else {
@@ -168,7 +168,6 @@ export default function PageForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">محتوى الصفحة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '400px' }} />
               </div>
             </Form.Group>

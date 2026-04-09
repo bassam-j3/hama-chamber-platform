@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,6 +40,15 @@ export default function ProjectForm() {
   
   const editorContent = watch("content");
 
+  const populateForm = useCallback((data: { title: string; content: string; isActive: boolean; imageUrl?: string; images?: string[] }) => {
+    setValue("title", data.title);
+    setValue("content", data.content);
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+    setExistingImages(data.images || []);
+    setFileType(data.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) ? 'video' : 'image');
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
       const stateProject = location.state?.projectItem;
@@ -49,7 +58,7 @@ export default function ProjectForm() {
         setIsLoading(true);
         axiosInstance.get("/projects")
           .then(res => {
-            const item = res.data.find((p: any) => p.id === id);
+            const item = res.data.find((p: { id: string }) => p.id === id);
             if (item) populateForm(item);
           })
           .catch(() => { // تم حذف err غير المستخدم هنا لحل الخطأ 6133
@@ -58,16 +67,7 @@ export default function ProjectForm() {
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("content", data.content);
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-    setExistingImages(data.images || []);
-    setFileType(data.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) ? 'video' : 'image');
-  };
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -149,7 +149,6 @@ export default function ProjectForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold">التفاصيل</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val)} style={{ height: '300px' }} />
               </div>
             </Form.Group>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -41,6 +41,14 @@ export default function NewsForm() {
   
   const editorContent = watch("content");
 
+  const populateForm = useCallback((data: { title: string; content: string; isActive: boolean; imageUrl?: string; images?: string[] }) => {
+    setValue("title", data.title);
+    setValue("content", data.content);
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+    setExistingImages(data.images || []); 
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
       const stateNews = location.state?.newsItem;
@@ -50,7 +58,7 @@ export default function NewsForm() {
         setIsLoading(true);
         axiosInstance.get("/news")
           .then(res => {
-            const item = res.data.find((n: any) => n.id === id);
+            const item = res.data.find((n: { id: string }) => n.id === id);
             if (item) populateForm(item);
           })
           .catch(err => {
@@ -60,15 +68,7 @@ export default function NewsForm() {
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("content", data.content);
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-    setExistingImages(data.images || []); 
-  };
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -122,7 +122,7 @@ export default function NewsForm() {
       }
       
       navigate('/admin/news', { replace: true });
-    } catch (error) { 
+    } catch { 
       toast.error("حدث خطأ أثناء حفظ الخبر.", { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
@@ -161,7 +161,6 @@ export default function NewsForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">تفاصيل الخبر</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
               </div>
               {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
@@ -174,7 +173,7 @@ export default function NewsForm() {
               <label htmlFor="main-upload" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer transition-hover" style={{ borderStyle: 'dashed', backgroundColor: '#f8f9fa' }}>
                 {previewUrl ? (
                   <div className="position-relative">
-                    <img src={previewUrl} className="rounded-3 shadow-sm" style={{ maxHeight: '150px' }} />
+                    <img src={previewUrl} className="rounded-3 shadow-sm" alt="Preview" style={{ maxHeight: '150px' }} />
                     <div className="mt-2 text-primary fw-bold small"><span className="material-symbols-outlined align-middle fs-6">edit</span> تغيير الغلاف</div>
                   </div>
                 ) : (

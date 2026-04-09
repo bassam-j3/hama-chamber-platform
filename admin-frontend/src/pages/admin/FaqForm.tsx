@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,6 +31,12 @@ export default function FaqForm() {
   
   const editorContent = watch("answer");
 
+  const populateForm = useCallback((data: { question: string; answer: string; isActive: boolean }) => {
+    setValue("question", data.question);
+    setValue("answer", data.answer);
+    setValue("isActive", data.isActive);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
       const stateItem = location.state?.faqItem;
@@ -40,7 +46,7 @@ export default function FaqForm() {
         setIsLoading(true);
         axiosInstance.get("/faqs")
           .then(res => {
-            const item = res.data.find((f: any) => f.id === id);
+            const item = res.data.find((f: { id: string }) => f.id === id);
             if (item) populateForm(item);
           })
           .catch(err => {
@@ -50,13 +56,7 @@ export default function FaqForm() {
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("question", data.question);
-    setValue("answer", data.answer);
-    setValue("isActive", data.isActive);
-  };
+  }, [id, location.state, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -70,7 +70,7 @@ export default function FaqForm() {
         toast.success("تمت إضافة السؤال بنجاح!", { id: toastId });
       }
       navigate('/admin/faqs', { replace: true });
-    } catch (error) { 
+    } catch { 
         toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
     } finally { 
         setIsSubmitting(false); 
@@ -109,7 +109,6 @@ export default function FaqForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">الإجابة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("answer", val, { shouldValidate: true })} style={{ height: '200px' }} />
               </div>
               {errors.answer && <div className="text-danger mt-5 small fw-bold">{errors.answer.message}</div>}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Spinner, Button, Modal, Form, Dropdown, DropdownButton } from 'react-bootstrap';
 import axiosInstance from '../../api/axiosInstance';
 
@@ -43,20 +43,20 @@ export default function Inbox() {
   const [composeAttachments, setComposeAttachments] = useState<FileList | null>(null);
 
   // جلب قائمة الإيميلات
-  const fetchEmails = async (folder = currentFolder) => {
+  const fetchEmails = useCallback(async (folder = currentFolder) => {
     setLoadingList(true);
     try {
       const response = await axiosInstance.get(`/emails/list?folder=${folder}&limit=20`);
       setEmails(response.data);
       setError('');
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل الرسائل. يرجى التأكد من الاتصال.');
     } finally {
       setLoadingList(false);
     }
-  };
+  }, [currentFolder]);
 
-  useEffect(() => { fetchEmails(); }, []);
+  useEffect(() => { fetchEmails(); }, [fetchEmails]);
 
   // تغيير المجلد
   const handleFolderChange = (folder: string) => {
@@ -80,7 +80,7 @@ export default function Inbox() {
         await axiosInstance.put(`/emails/inbox/${emailItem.id}/read`);
         setEmails(prev => prev.map(e => e.id === emailItem.id ? { ...e, isUnread: false } : e));
       }
-    } catch (err) {
+    } catch {
       setError('حدث خطأ أثناء جلب تفاصيل الرسالة.');
       setShowReadModal(false);
     } finally {
@@ -109,7 +109,7 @@ export default function Inbox() {
       setShowComposeModal(false);
       setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null);
       alert('تم إرسال الرسالة بنجاح! 🚀');
-    } catch (err) {
+    } catch {
       alert('حدث خطأ أثناء إرسال الرسالة، تأكد من الإعدادات.');
     } finally {
       setSending(false);

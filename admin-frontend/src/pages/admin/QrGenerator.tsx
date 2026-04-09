@@ -1,4 +1,4 @@
-import  { useState, useEffect, useRef } from 'react';
+import  { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Button, Form, Spinner, Row, Col } from 'react-bootstrap';
 import { QRCodeCanvas } from 'qrcode.react';
 import axiosInstance from '../../api/axiosInstance';
@@ -20,6 +20,14 @@ export default function QrGenerator() {
   // كلمة سرية للتشفير (حتى لا يستطيع أحد تزوير الرابط)
   const SECRET_SALT = "HAMA_CHAMBER_SECURE_2026";
 
+  // دالة تشفير الرابط
+  const generateSecureLink = useCallback((slug: string) => {
+    // ندمج الرابط مع الكلمة السرية، ثم نشفره بصيغة Base64
+    const rawData = `${slug}|||${SECRET_SALT}`;
+    const encryptedToken = btoa(encodeURIComponent(rawData)); // تشفير
+    setTargetUrl(`${baseUrl}/qr/${encryptedToken}`);
+  }, [baseUrl]);
+
   useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -35,15 +43,7 @@ export default function QrGenerator() {
       }
     };
     fetchPages();
-  }, [baseUrl]);
-
-  // دالة تشفير الرابط
-  const generateSecureLink = (slug: string) => {
-    // ندمج الرابط مع الكلمة السرية، ثم نشفره بصيغة Base64
-    const rawData = `${slug}|||${SECRET_SALT}`;
-    const encryptedToken = btoa(encodeURIComponent(rawData)); // تشفير
-    setTargetUrl(`${baseUrl}/qr/${encryptedToken}`);
-  };
+  }, [baseUrl, generateSecureLink]);
 
   const downloadQRCode = () => {
     if (qrRef.current) {

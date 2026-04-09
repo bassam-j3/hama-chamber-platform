@@ -28,7 +28,7 @@ export default function BannerManagement() {
     try {
       const response = await axiosInstance.get("/banners");
       setBanners(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى.");
       toast.error('فشل في جلب البانرات');

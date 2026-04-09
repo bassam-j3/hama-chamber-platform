@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,6 +34,13 @@ export default function ExhibitionForm() {
   
   const editorContent = watch("content");
 
+  const populateForm = useCallback((data: { title: string; content: string; isActive: boolean; imageUrl?: string }) => {
+    setValue("title", data.title);
+    setValue("content", data.content);
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
       const stateItem = location.state?.exhibitionItem;
@@ -43,24 +50,17 @@ export default function ExhibitionForm() {
         setIsLoading(true);
         axiosInstance.get("/exhibitions")
           .then(res => {
-            const item = res.data.find((e: any) => e.id === id);
+            const item = res.data.find((e: { id: string }) => e.id === id);
             if (item) populateForm(item);
           })
           .catch(err => {
             console.error(err);
-            toast.error("فشل في تحميل البيانات");
+            toast.error("فشل في تحميل بيانات الصفحة");
           })
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("content", data.content);
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-  };
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -90,7 +90,7 @@ export default function ExhibitionForm() {
         toast.success("تم توثيق الفعالية بنجاح!", { id: toastId });
       }
       navigate('/admin/exhibitions', { replace: true });
-    } catch (error) { 
+    } catch { 
         toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
     } finally { 
         setIsSubmitting(false); 
@@ -129,7 +129,6 @@ export default function ExhibitionForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">تفاصيل المشاركة (يدعم المحرر المتقدم)</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
               </div>
               {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
@@ -146,7 +145,7 @@ export default function ExhibitionForm() {
               <label htmlFor="exhibition-upload" className="d-flex flex-column align-items-center justify-content-center border border-2 border-primary rounded-4 p-4 mx-auto transition-hover" style={{ maxWidth: '500px', cursor: 'pointer', backgroundColor: '#f8f9fa', borderStyle: 'dashed !important' }}>
                 {previewUrl ? (
                   <div className="position-relative w-100">
-                    <img src={previewUrl} className="rounded-3 shadow-sm border w-100" style={{ maxHeight: '250px', objectFit: 'contain' }} />
+                    <img src={previewUrl} className="rounded-3 shadow-sm border w-100" alt="Preview" style={{ maxHeight: '250px', objectFit: 'contain' }} />
                     <div className="mt-3 text-primary fw-bold d-flex align-items-center justify-content-center gap-1"><span className="material-symbols-outlined fs-5">edit</span> تغيير الصورة</div>
                   </div>
                 ) : (

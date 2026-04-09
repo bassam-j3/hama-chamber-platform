@@ -37,14 +37,14 @@ export default function LawForm() {
       } else {
         setIsLoading(true);
         axiosInstance.get("/laws").then(res => {
-          const item = res.data.find((p: any) => p.id === id);
+          const item = res.data.find((p: { id: string }) => p.id === id);
           if (item) {
             setValue("title", item.title); setValue("content", item.content); setValue("isActive", item.isActive);
           }
         }).finally(() => setIsLoading(false));
       }
     }
-  }, [id]);
+  }, [id, location.state?.item, setValue]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -61,7 +61,7 @@ export default function LawForm() {
       
       toast.success('تم الحفظ بنجاح', { id: toastId });
       navigate('/admin/laws');
-    } catch (error) { toast.error('فشل الحفظ', { id: toastId }); } 
+    } catch { toast.error('فشل الحفظ', { id: toastId }); } 
     finally { setIsSubmitting(false); }
   };
 
@@ -86,7 +86,7 @@ export default function LawForm() {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>ملف مرفق (PDF / صورة - اختياري)</Form.Label>
-              <Form.Control type="file" onChange={(e: any) => setSelectedFile(e.target.files[0])} />
+              <Form.Control type="file" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
             </Form.Group>
             <Form.Check type="switch" label="نشر القانون" {...register("isActive")} className="mb-4 fw-bold" />
             <Button variant="primary" type="submit" disabled={isSubmitting} className="w-100">حفظ القانون</Button>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,6 +31,13 @@ export default function BannerForm() {
     defaultValues: { isActive: true, link: "" }
   });
 
+  const populateForm = useCallback((data: { title: string; link?: string; isActive: boolean; imageUrl?: string }) => {
+    setValue("title", data.title);
+    setValue("link", data.link || "");
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
       const stateItem = location.state?.bannerItem;
@@ -40,7 +47,7 @@ export default function BannerForm() {
         setIsLoading(true);
         axiosInstance.get("/banners")
           .then(res => {
-            const item = res.data.find((b: any) => b.id === id);
+            const item = res.data.find((b: { id: string }) => b.id === id);
             if (item) populateForm(item);
           })
           .catch(err => {
@@ -50,14 +57,7 @@ export default function BannerForm() {
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("link", data.link || "");
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-  };
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -95,7 +95,7 @@ export default function BannerForm() {
       
       navigate('/admin/banners', { replace: true });
       
-    } catch (error) { 
+    } catch { 
       toast.error("حدث خطأ أثناء حفظ البانر.", { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 

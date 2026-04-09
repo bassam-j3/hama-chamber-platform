@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -31,23 +31,23 @@ export default function CircularForm() {
 
   const editorContent = watch("content");
 
+  const populateForm = useCallback((data: { title: string; content: string; category?: string; isActive: boolean }) => {
+    setValue("title", data.title); setValue("content", data.content);
+    setValue("category", data.category || ""); setValue("isActive", data.isActive);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
       if (location.state?.item) populateForm(location.state.item);
       else {
         setIsLoading(true);
         axiosInstance.get("/circulars").then(res => {
-          const item = res.data.find((p: any) => p.id === id);
+          const item = res.data.find((p: { id: string }) => p.id === id);
           if (item) populateForm(item);
         }).finally(() => setIsLoading(false));
       }
     }
-  }, [id]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title); setValue("content", data.content);
-    setValue("category", data.category || ""); setValue("isActive", data.isActive);
-  };
+  }, [id, location.state?.item, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -65,7 +65,7 @@ export default function CircularForm() {
       
       toast.success('تم الحفظ بنجاح', { id: toastId });
       navigate('/admin/circulars');
-    } catch (error) { toast.error('فشل الحفظ', { id: toastId }); } 
+    } catch { toast.error('فشل الحفظ', { id: toastId }); } 
     finally { setIsSubmitting(false); }
   };
 
@@ -90,7 +90,7 @@ export default function CircularForm() {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>مرفق التعميم (صورة - اختياري)</Form.Label>
-              <Form.Control type="file" accept="image/*" onChange={(e: any) => setSelectedFile(e.target.files[0])} />
+              <Form.Control type="file" accept="image/*" onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSelectedFile(e.target.files?.[0] || null)} />
             </Form.Group>
             <Form.Check type="switch" label="نشر التعميم" {...register("isActive")} className="mb-4 fw-bold" />
             <Button variant="primary" type="submit" disabled={isSubmitting} className="w-100">حفظ التعميم</Button>

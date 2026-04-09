@@ -36,10 +36,11 @@ export default function ResetPassword() {
       // توجيه المستخدم لصفحة تسجيل الدخول بعد ثانيتين
       setTimeout(() => navigate('/login'), 2000);
       
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
       setStatus({ 
         type: 'error', 
-        message: err.response?.data?.message || 'الرابط غير صالح أو منتهي الصلاحية.' 
+        message: error.response?.data?.message || 'الرابط غير صالح أو منتهي الصلاحية.' 
       });
     } finally {
       setIsLoading(false);

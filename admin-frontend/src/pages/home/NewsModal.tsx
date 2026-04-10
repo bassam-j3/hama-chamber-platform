@@ -18,7 +18,7 @@ export default function NewsModal({ news, onClose }: NewsModalProps) {
       centered 
       scrollable 
       dir="rtl"
-      fullscreen="sm-down"
+      fullscreen="sm-down" // 👈 Added fullscreen property for mobile responsiveness
     >
       <Modal.Header className="border-bottom-0 pb-0" closeButton>
       </Modal.Header>
@@ -48,7 +48,7 @@ export default function NewsModal({ news, onClose }: NewsModalProps) {
               margin: 10px 0;
             }
             .modal-rich-text {
-              word-break: break-word;
+              word-break: break-word; /* 👈 Added word-break for long text/links */
             }
           `}
         </style>

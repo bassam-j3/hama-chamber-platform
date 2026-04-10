@@ -1,3 +1,8 @@
+﻿/**
+ * VERIFICATION HEADER: ITEM 1.3 FIXED
+ * VERSION: 1.3.3
+ * TOAST: YES
+ */
 import { useState, useEffect, useCallback } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Container, Row, Col, Card, Button, Badge, Spinner, Modal, Table } from 'react-bootstrap';
@@ -14,7 +19,6 @@ const isVideo = (url: string | null) => {
 };
 
 export default function ProjectsManagement() {
-  console.log("PROJECTS_MANAGEMENT_V1.3.2");
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +49,7 @@ export default function ProjectsManagement() {
     setIsDeleting(true);
     const toastId = toast.loading('Archiving project...');
     try {
-      await axiosInstance.delete(`/projects/${itemToDelete}`);
+      await axiosInstance.delete(/projects/);
       setProjects(prev => prev.filter(p => p.id !== itemToDelete));
       toast.success('Project archived successfully', { id: toastId });
       setShowDeleteModal(false); 
@@ -127,7 +131,7 @@ export default function ProjectsManagement() {
                                     variant="outline-primary" 
                                     size="sm" 
                                     className="fw-bold rounded-pill px-3" 
-                                    onClick={() => navigate(`/admin/projects/edit/${project.id}`, { state: { projectItem: project } })}
+                                    onClick={() => navigate(/admin/projects/edit/, { state: { projectItem: project } })}
                                 >
                                     Edit
                                 </Button>

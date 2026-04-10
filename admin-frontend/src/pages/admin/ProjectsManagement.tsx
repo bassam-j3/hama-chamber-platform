@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { Container, Row, Col, Card, Button, Badge, Spinner, Modal, Table } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import toast from 'react-hot-toast'; // 👈 Explicitly imported react-hot-toast
 
 interface Project {
   id: string; title: string; content: string; imageUrl: string; isActive: boolean; createdAt: string;
@@ -43,16 +43,16 @@ export default function ProjectsManagement() {
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     setIsDeleting(true);
-    const toastId = toast.loading('جاري نقل المشروع للأرشيف...');
+    const toastId = toast.loading('جاري نقل المشروع للأرشيف...'); // 👈 Using toast for delete status
     try {
       // Backend remove() sets isActive: false (Soft Delete)
       await axiosInstance.delete(`/projects/${itemToDelete}`);
       setProjects(prev => prev.filter(p => p.id !== itemToDelete));
-      toast.success('تم حذف المشروع بنجاح (نقل للأرشيف)', { id: toastId });
+      toast.success('تم حذف المشروع بنجاح (نقل للأرشيف)', { id: toastId }); // 👈 Success toast
       setShowDeleteModal(false); 
       setItemToDelete(null);
     } catch { 
-      toast.error('فشل حذف المشروع، يرجى المحاولة لاحقاً', { id: toastId });
+      toast.error('فشل حذف المشروع، يرجى المحاولة لاحقاً', { id: toastId }); // 👈 Error toast
     } finally { 
       setIsDeleting(false); 
     }

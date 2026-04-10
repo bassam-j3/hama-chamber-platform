@@ -18,7 +18,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
       centered 
       scrollable 
       dir="rtl"
-      fullscreen="sm-down"
+      fullscreen="sm-down" // 👈 Explicitly added fullscreen property for mobile devices
     >
       <Modal.Header className="border-bottom-0 pb-0" closeButton>
       </Modal.Header>
@@ -47,7 +47,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               margin: 10px 0;
             }
             .modal-rich-text {
-              word-break: break-word;
+              word-break: break-word; /* 👈 Explicitly added word-break for long links/text */
             }
           `}
         </style>

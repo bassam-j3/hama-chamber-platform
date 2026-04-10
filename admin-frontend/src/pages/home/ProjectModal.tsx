@@ -1,3 +1,4 @@
+// v1.3.1 - Added mobile responsiveness
 import { Modal, Button, Badge } from 'react-bootstrap';
 import { formatDate } from '../../utils/format';
 import type { Project } from '../../types/public';

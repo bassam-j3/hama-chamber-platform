@@ -1,6 +1,6 @@
-﻿/**
+/**
  * VERIFICATION HEADER: ITEM 1.3 FIXED
- * VERSION: 1.3.3
+ * VERSION: 1.3.4
  * TOAST: YES
  */
 import { useState, useEffect, useCallback } from "react";
@@ -49,7 +49,7 @@ export default function ProjectsManagement() {
     setIsDeleting(true);
     const toastId = toast.loading('Archiving project...');
     try {
-      await axiosInstance.delete(/projects/);
+      await axiosInstance.delete(`/projects/${itemToDelete}`);
       setProjects(prev => prev.filter(p => p.id !== itemToDelete));
       toast.success('Project archived successfully', { id: toastId });
       setShowDeleteModal(false); 
@@ -131,7 +131,7 @@ export default function ProjectsManagement() {
                                     variant="outline-primary" 
                                     size="sm" 
                                     className="fw-bold rounded-pill px-3" 
-                                    onClick={() => navigate(/admin/projects/edit/, { state: { projectItem: project } })}
+                                    onClick={() => navigate(`/admin/projects/edit/${project.id}`, { state: { projectItem: project } })}
                                 >
                                     Edit
                                 </Button>

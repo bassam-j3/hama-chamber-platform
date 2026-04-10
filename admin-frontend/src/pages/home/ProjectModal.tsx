@@ -1,6 +1,6 @@
-﻿/**
+/**
  * VERIFICATION HEADER: ITEM 1.3 FIXED
- * VERSION: 1.3.3
+ * VERSION: 1.3.4
  * FULLSCREEN: YES
  * WORD-BREAK: YES
  */
@@ -45,7 +45,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         <h3 className="fw-bold text-dark mb-3 mb-md-4 lh-base h4 h3-md">{project.title}</h3>
         
         <style>
-          {
+          {`
             .modal-rich-text img {
               max-width: 100%;
               height: auto;
@@ -55,7 +55,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             .modal-rich-text {
               word-break: break-word;
             }
-          }
+          `}
         </style>
         <div 
           className="text-secondary lh-lg fs-6 modal-rich-text" 

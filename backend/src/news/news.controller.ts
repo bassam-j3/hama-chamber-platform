@@ -1,4 +1,16 @@
-import { Controller, Post, Body, UploadedFiles, UseInterceptors, Put, Param, Get, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UploadedFiles,
+  UseInterceptors,
+  Put,
+  Param,
+  Get,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -20,18 +32,25 @@ export class NewsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(AnyFilesInterceptor())
-  async create(@Body() body: any, @UploadedFiles() files: Express.Multer.File[]) {
-    const mainImage = files.find(f => f.fieldname === 'image');
-    const gallery = files.filter(f => f.fieldname === 'gallery');
+  async create(
+    @Body() body: any,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const mainImage = files.find((f) => f.fieldname === 'image');
+    const gallery = files.filter((f) => f.fieldname === 'gallery');
     return this.newsService.create(body, mainImage, gallery);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(AnyFilesInterceptor())
-  async update(@Param('id') id: string, @Body() body: any, @UploadedFiles() files: Express.Multer.File[]) {
-    const mainImage = files.find(f => f.fieldname === 'image');
-    const gallery = files.filter(f => f.fieldname === 'gallery');
+  async update(
+    @Param('id') id: string,
+    @Body() body: any,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const mainImage = files.find((f) => f.fieldname === 'image');
+    const gallery = files.filter((f) => f.fieldname === 'gallery');
     return this.newsService.update(id, body, mainImage, gallery);
   }
 

@@ -20,14 +20,14 @@ describe('JwtStrategy (Security Test)', () => {
 
     // 👈 تم تحديث النص هنا ليتطابق تماماً مع الكود الفعلي الخاص بك
     expect(() => new JwtStrategy()).toThrow(
-      'CRITICAL: JWT_SECRET environment variable is not defined!'
+      'CRITICAL: JWT_SECRET environment variable is not defined!',
     );
   });
 
   it('should instantiate successfully if JWT_SECRET is provided', () => {
     // محاكاة وجود المتغير البيئي بشكل صحيح
     process.env.JWT_SECRET = 'secure_test_secret_key_123';
-    
+
     const strategy = new JwtStrategy();
     expect(strategy).toBeDefined();
   });

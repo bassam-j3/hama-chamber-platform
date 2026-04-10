@@ -1,4 +1,3 @@
-// v1.3.1 - Added mobile responsiveness
 import { Modal, Button, Badge } from 'react-bootstrap';
 import { formatDate } from '../../utils/format';
 import type { Project } from '../../types/public';
@@ -9,6 +8,7 @@ interface ProjectModalProps {
 }
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+  console.log("PROJECT_MODAL_V1.3.2");
   if (!project) return null;
 
   return (
@@ -19,7 +19,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
       centered 
       scrollable 
       dir="rtl"
-      fullscreen="sm-down" // 👈 Explicitly added fullscreen property for mobile devices
+      fullscreen="sm-down"
     >
       <Modal.Header className="border-bottom-0 pb-0" closeButton>
       </Modal.Header>
@@ -34,7 +34,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
         <div className="d-flex align-items-center gap-2 text-success small mb-2 mb-md-3 fw-bold">
           <span className="material-symbols-outlined fs-5">calendar_today</span>
           <span>{formatDate(project.createdAt)}</span>
-          <Badge bg="success" className="ms-auto rounded-pill px-3 py-2 fw-normal text-white">مشروع تنموي</Badge>
+          <Badge bg="success" className="ms-auto rounded-pill px-3 py-2 fw-normal text-white">Project</Badge>
         </div>
         
         <h3 className="fw-bold text-dark mb-3 mb-md-4 lh-base h4 h3-md">{project.title}</h3>
@@ -48,7 +48,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               margin: 10px 0;
             }
             .modal-rich-text {
-              word-break: break-word; /* 👈 Explicitly added word-break for long links/text */
+              word-break: break-word;
             }
           `}
         </style>
@@ -60,7 +60,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
       <Modal.Footer className="border-top-0 pt-0">
         <Button variant="outline-secondary" className="rounded-pill px-4 fw-bold hover-scale transition-all w-100 w-md-auto" onClick={onClose}>
-          إغلاق
+          Close
         </Button>
       </Modal.Footer>
     </Modal>

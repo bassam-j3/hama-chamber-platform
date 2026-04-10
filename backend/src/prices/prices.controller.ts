@@ -7,9 +7,13 @@ export class PricesController {
   constructor(private readonly pricesService: PricesService) {}
 
   @Get()
-  getPrices() { return this.pricesService.getPrices(); }
+  getPrices() {
+    return this.pricesService.getPrices();
+  }
 
   @Put()
   @UseGuards(JwtAuthGuard)
-  updatePrices(@Body() body: any) { return this.pricesService.updatePrices(body); }
+  updatePrices(@Body() body: any) {
+    return this.pricesService.updatePrices(body);
+  }
 }

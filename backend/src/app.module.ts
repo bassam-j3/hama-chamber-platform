@@ -13,14 +13,14 @@ import { ProjectsModule } from './projects/projects.module';
 import { NewsModule } from './news/news.module';
 import { LawsModule } from './laws/laws.module';
 import { CircularsModule } from './circulars/circulars.module';
-import { BoardMembersModule } from './board-members/board-members.module'; 
+import { BoardMembersModule } from './board-members/board-members.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { EmailsModule } from './emails/emails.module'; // 👈 استيراد موديول الإيميلات
 
 @Module({
   imports: [
     // تهيئة موديول الإعدادات وجعله عالمياً ليشمل كل ملفات المشروع
-    ConfigModule.forRoot({ isGlobal: true }), 
+    ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
     CloudinaryModule,
     AuthModule,

@@ -17,9 +17,9 @@ export class FaqsService {
   }
 
   update(id: string, data: any) {
-    return this.prisma.faq.update({ 
-      where: { id }, 
-      data 
+    return this.prisma.faq.update({
+      where: { id },
+      data,
     });
   }
 

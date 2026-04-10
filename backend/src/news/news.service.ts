@@ -6,7 +6,11 @@ import { v2 as cloudinary } from 'cloudinary';
 export class NewsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: any, mainImage?: Express.Multer.File, galleryImages?: Express.Multer.File[]) {
+  async create(
+    data: any,
+    mainImage?: Express.Multer.File,
+    galleryImages?: Express.Multer.File[],
+  ) {
     let imageUrl = data.imageUrl || null;
     const images: string[] = [];
 
@@ -22,7 +26,7 @@ export class NewsService {
       }
     }
 
-    return (this.prisma.news as any).create({
+    return this.prisma.news.create({
       data: {
         title: data.title,
         content: data.content,
@@ -35,37 +39,47 @@ export class NewsService {
 
   async findAll(query?: { search?: string; status?: string }) {
     const { search, status } = query || {};
-    
-    return (this.prisma.news as any).findMany({
+
+    return this.prisma.news.findMany({
       where: {
         // الفلترة الأساسية: لا نعرض المحذوف ناعماً إلا إذا طلبنا ذلك (افتراضياً isActive: true)
-        isActive: status === 'inactive' ? false : status === 'active' ? true : true,
-        AND: search ? [
-          {
-            OR: [
-              { title: { contains: search, mode: 'insensitive' } },
-              { content: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        ] : [],
+        isActive:
+          status === 'inactive' ? false : status === 'active' ? true : true,
+        AND: search
+          ? [
+              {
+                OR: [
+                  { title: { contains: search, mode: 'insensitive' } },
+                  { content: { contains: search, mode: 'insensitive' } },
+                ],
+              },
+            ]
+          : [],
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string) {
-    const news = await (this.prisma.news as any).findFirst({
+    const news = await this.prisma.news.findFirst({
       where: { id, isActive: true },
     });
     if (!news) throw new NotFoundException('الخبر غير موجود أو تم حذفه');
     return news;
   }
 
-  async update(id: string, data: any, mainImage?: Express.Multer.File, galleryImages?: Express.Multer.File[]) {
+  async update(
+    id: string,
+    data: any,
+    mainImage?: Express.Multer.File,
+    galleryImages?: Express.Multer.File[],
+  ) {
     const existing = await this.findOne(id);
 
     let imageUrl = existing.imageUrl;
-    let images = data.remainingImages ? JSON.parse(data.remainingImages) : [...existing.images];
+    const images = data.remainingImages
+      ? JSON.parse(data.remainingImages)
+      : [...existing.images];
 
     if (mainImage) {
       const upload = await this.uploadToCloudinary(mainImage);
@@ -79,7 +93,7 @@ export class NewsService {
       }
     }
 
-    return (this.prisma.news as any).update({
+    return this.prisma.news.update({
       where: { id },
       data: {
         title: data.title,
@@ -93,7 +107,7 @@ export class NewsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    return (this.prisma.news as any).update({
+    return this.prisma.news.update({
       where: { id },
       data: { isActive: false },
     });
@@ -101,10 +115,12 @@ export class NewsService {
 
   private async uploadToCloudinary(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({ folder: 'hama-chamber/news' }, (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }).end(file.buffer);
+      cloudinary.uploader
+        .upload_stream({ folder: 'hama-chamber/news' }, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        })
+        .end(file.buffer);
     });
   }
 }

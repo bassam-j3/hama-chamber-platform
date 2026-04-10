@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -8,7 +13,9 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: any) {
-    const existingUser = await this.prisma.user.findUnique({ where: { email: data.email } });
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
     if (existingUser) {
       throw new ConflictException('البريد الإلكتروني مستخدم بالفعل');
     }
@@ -28,15 +35,15 @@ export class UsersService {
 
   findAll() {
     return this.prisma.user.findMany({
-      select: { 
-        id: true, 
-        name: true, 
-        email: true, 
-        role: true, 
-        isActive: true, 
-        createdAt: true 
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -67,7 +74,7 @@ export class UsersService {
   remove(id: string) {
     return this.prisma.user.update({
       where: { id },
-      data: { isActive: false }
+      data: { isActive: false },
     });
   }
 
@@ -96,9 +103,9 @@ export class UsersService {
 
     // ملاحظة: في بيئة الإنتاج الفعلية، هنا يتم إرسال إيميل حقيقي للمستخدم
     // حالياً نعيد التوكن للواجهة (كمثال/أو بيئة تطوير)
-    return { 
-      message: 'تم إنشاء رابط استعادة كلمة المرور', 
-      resetToken 
+    return {
+      message: 'تم إنشاء رابط استعادة كلمة المرور',
+      resetToken,
     };
   }
 

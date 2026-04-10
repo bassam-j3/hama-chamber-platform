@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
@@ -18,26 +22,45 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      throw new UnauthorizedException(
+        'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+      throw new UnauthorizedException(
+        'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+      );
     }
 
-    const payload = { email: user.email, sub: user.id, name: user.name, role: user.role };
-    
+    const payload = {
+      email: user.email,
+      sub: user.id,
+      name: user.name,
+      role: user.role,
+    };
+
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     };
   }
 
   async initAdmin() {
     const usersCount = await this.prisma.user.count();
     if (usersCount > 0) {
-      throw new BadRequestException('تمت تهيئة حساب المدير مسبقاً، لا يمكن إنشاء حساب جديد بهذه الطريقة');
+      throw new BadRequestException(
+        'تمت تهيئة حساب المدير مسبقاً، لا يمكن إنشاء حساب جديد بهذه الطريقة',
+      );
     }
 
     const defaultPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123456';
@@ -49,13 +72,13 @@ export class AuthService {
         name: 'مدير النظام',
         email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@hamachamber.com',
         password: hashedPassword,
-        role: Role.ADMIN, 
+        role: Role.ADMIN,
       },
     });
 
-    return { 
-      message: 'تم إنشاء حساب المدير بنجاح', 
-      email: admin.email
+    return {
+      message: 'تم إنشاء حساب المدير بنجاح',
+      email: admin.email,
     };
   }
 }

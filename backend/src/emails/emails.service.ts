@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ImapFlow } from 'imapflow';
 import * as nodemailer from 'nodemailer';
@@ -28,15 +32,23 @@ export class EmailsService {
     const client = this.createImapClient();
     try {
       await client.connect();
-      
+
       let targetPath = 'INBOX';
       const mailboxes = await client.list();
-      
+
       if (folderType === 'SENT') {
-        const sentFolder = mailboxes.find(m => m.specialUse === '\\Sent' || m.path.toLowerCase().includes('sent'));
+        const sentFolder = mailboxes.find(
+          (m) =>
+            m.specialUse === '\\Sent' || m.path.toLowerCase().includes('sent'),
+        );
         targetPath = sentFolder ? sentFolder.path : 'Sent';
       } else if (folderType === 'SPAM') {
-        const spamFolder = mailboxes.find(m => m.specialUse === '\\Junk' || m.path.toLowerCase().includes('junk') || m.path.toLowerCase().includes('spam'));
+        const spamFolder = mailboxes.find(
+          (m) =>
+            m.specialUse === '\\Junk' ||
+            m.path.toLowerCase().includes('junk') ||
+            m.path.toLowerCase().includes('spam'),
+        );
         targetPath = spamFolder ? spamFolder.path : 'Junk';
       }
 
@@ -49,11 +61,17 @@ export class EmailsService {
           const totalMessages = client.mailbox.exists;
           if (totalMessages > 0) {
             const start = Math.max(1, totalMessages - limit + 1);
-            for await (const message of client.fetch(`${start}:${totalMessages}`, { envelope: true, flags: true })) {
+            for await (const message of client.fetch(
+              `${start}:${totalMessages}`,
+              { envelope: true, flags: true },
+            )) {
               emails.push({
                 id: message.uid,
                 subject: message.envelope?.subject || 'بدون عنوان',
-                from: message.envelope?.from?.[0]?.address || message.envelope?.from?.[0]?.name || 'مجهول',
+                from:
+                  message.envelope?.from?.[0]?.address ||
+                  message.envelope?.from?.[0]?.name ||
+                  'مجهول',
                 date: message.envelope?.date || new Date(),
                 isUnread: !message.flags?.has('\\Seen'),
               });
@@ -81,10 +99,15 @@ export class EmailsService {
       let emailDetails = null;
 
       try {
-        const message = await client.fetchOne(uid.toString(), { source: true }, { uid: true });
-        if (!message || !message.source) throw new NotFoundException('الرسالة غير موجودة');
+        const message = await client.fetchOne(
+          uid.toString(),
+          { source: true },
+          { uid: true },
+        );
+        if (!message || !message.source)
+          throw new NotFoundException('الرسالة غير موجودة');
 
-        const parsed: ParsedMail = await simpleParser(message.source as Buffer);
+        const parsed: ParsedMail = await simpleParser(message.source);
         emailDetails = {
           id: message.uid,
           subject: parsed.subject,
@@ -92,12 +115,14 @@ export class EmailsService {
           date: parsed.date,
           text: parsed.text,
           html: parsed.html || parsed.textAsHtml,
-          attachments: parsed.attachments ? parsed.attachments.map(att => ({
-            filename: att.filename || 'مرفق',
-            contentType: att.contentType,
-            size: att.size,
-            content: att.content ? att.content.toString('base64') : ''
-          })) : []
+          attachments: parsed.attachments
+            ? parsed.attachments.map((att) => ({
+                filename: att.filename || 'مرفق',
+                contentType: att.contentType,
+                size: att.size,
+                content: att.content ? att.content.toString('base64') : '',
+              }))
+            : [],
         };
       } finally {
         lock.release();
@@ -128,7 +153,12 @@ export class EmailsService {
   }
 
   // 4. إرسال بريد جديد
-  async sendEmail(to: string, subject: string, html: string, attachments?: Array<Express.Multer.File>) {
+  async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+    attachments?: Array<Express.Multer.File>,
+  ) {
     try {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -140,16 +170,21 @@ export class EmailsService {
         },
         tls: {
           // هذا السطر السحري يجبر السيرفر على الاتصال حتى لو كانت شهادة SCS غير عالمية
-          rejectUnauthorized: false 
-        }
+          rejectUnauthorized: false,
+        },
       });
       const mailOptions: any = {
         from: `"غرفة تجارة حماة" <${this.config.get('SMTP_USER')}>`,
-        to, subject, html,
+        to,
+        subject,
+        html,
       };
 
       if (attachments) {
-        mailOptions.attachments = attachments.map(file => ({ filename: file.originalname, content: file.buffer }));
+        mailOptions.attachments = attachments.map((file) => ({
+          filename: file.originalname,
+          content: file.buffer,
+        }));
       }
 
       const info = await transporter.sendMail(mailOptions);

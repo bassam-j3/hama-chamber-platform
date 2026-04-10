@@ -10,8 +10,8 @@ import 'react-quill-new/dist/quill.snow.css';
 import toast from 'react-hot-toast';
 
 const projectSchema = z.object({
-  title: z.string().min(3, "عنوان المشروع مطلوب"),
-  content: z.string().min(10, "التفاصيل مطلوبة"),
+  title: z.string().min(3, "عنوان المشروع يجب أن يكون 3 أحرف على الأقل"),
+  content: z.string().min(10, "تفاصيل المشروع يجب أن تكون 10 أحرف على الأقل"),
   isActive: z.boolean(),
 });
 
@@ -60,8 +60,9 @@ export default function ProjectForm() {
           .then(res => {
             const item = res.data.find((p: { id: string }) => p.id === id);
             if (item) populateForm(item);
+            else toast.error("المشروع غير موجود");
           })
-          .catch(() => { // تم حذف err غير المستخدم هنا لحل الخطأ 6133
+          .catch(() => {
             toast.error("فشل في تحميل بيانات المشروع");
           })
           .finally(() => setIsLoading(false));
@@ -98,7 +99,7 @@ export default function ProjectForm() {
 
   const onSubmit = async (data: ProjectFormValues) => {
     setIsSubmitting(true);
-    const toastId = toast.loading('جاري حفظ المشروع والمعرض...');
+    const toastId = toast.loading(id ? 'جاري تحديث المشروع...' : 'جاري إضافة المشروع الجديد...');
     
     try {
       const formData = new FormData();
@@ -114,84 +115,148 @@ export default function ProjectForm() {
 
       if (id) {
         await axiosInstance.put(`/projects/${id}`, formData, config);
-        toast.success('تم التحديث بنجاح!', { id: toastId });
+        toast.success('تم تحديث المشروع بنجاح! 🎉', { id: toastId });
       } else {
         await axiosInstance.post("/projects", formData, config);
-        toast.success('تمت إضافة المشروع بنجاح!', { id: toastId });
+        toast.success('تمت إضافة المشروع بنجاح! 🚀', { id: toastId });
       }
       navigate('/admin/projects');
-    } catch (error) { 
-        console.error(error);
-      toast.error('حدث خطأ أثناء الحفظ.', { id: toastId }); 
+    } catch { 
+      toast.error('حدث خطأ أثناء حفظ البيانات، يرجى المحاولة لاحقاً', { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
     }
   };
 
-  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" /></div>;
+  if (isLoading) return (
+    <div className="text-center p-5 mt-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-3 text-primary fw-bold">جاري تحميل البيانات...</p>
+    </div>
+  );
 
   return (
-    <Container fluid className="max-w-75 mb-5">
+    <Container fluid className="max-w-75 mb-5" dir="rtl">
       <Card className="shadow-sm border-0 rounded-4">
-        <Card.Body className="p-5">
-          <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
-            <h4 className="text-primary fw-bold mb-0"> {id ? 'تعديل المشروع' : 'مشروع جديد'}</h4>
-            <Button variant="light" className="fw-bold border" onClick={() => navigate('/admin/projects')}>عودة</Button>
+        <Card.Body className="p-4 p-md-5">
+          <div className="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 flex-wrap gap-2">
+            <h4 className="text-primary fw-bold mb-0 d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined">{id ? 'edit_square' : 'add_business'}</span>
+                {id ? 'تعديل بيانات المشروع' : 'إضافة مشروع تنموي جديد'}
+            </h4>
+            <Button variant="light" className="fw-bold border shadow-sm rounded-pill px-4" onClick={() => navigate('/admin/projects')}>
+                عودة للقائمة
+            </Button>
           </div>
           
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
-              <Form.Label className="fw-bold">عنوان المشروع</Form.Label>
-              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" />
+              <Form.Label className="fw-bold text-dark">عنوان المشروع</Form.Label>
+              <Form.Control 
+                type="text" 
+                placeholder="أدخل عنواناً واضحاً للمشروع..."
+                isInvalid={!!errors.title} 
+                {...register("title")} 
+                className="py-2 rounded-3 border-light bg-light bg-opacity-50" 
+                disabled={isSubmitting}
+              />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
-              <Form.Label className="fw-bold">التفاصيل</Form.Label>
+              <Form.Label className="fw-bold text-dark">تفاصيل المشروع (محرر متقدم)</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                <ReactQuill theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val)} style={{ height: '300px' }} />
+                <ReactQuill 
+                    theme="snow" 
+                    value={editorContent || ""} 
+                    readOnly={isSubmitting}
+                    onChange={(val) => setValue("content", val, { shouldValidate: true })} 
+                    style={{ height: '300px' }} 
+                />
               </div>
+              {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
             </Form.Group>
 
             <Form.Group className="mb-5 pt-4 border-top text-center">
-              <Form.Label className="fw-bold d-block mb-3">غلاف المشروع الرئيسي (صورة أو فيديو)</Form.Label>
-              <input type="file" accept="image/*,video/*" id="project-main" className="d-none" onChange={handleFileChange} />
-              <label htmlFor="project-main" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer" style={{ borderStyle: 'dashed' }}>
+              <Form.Label className="fw-bold d-block mb-3 text-dark">الغلاف الرئيسي للمشروع</Form.Label>
+              <input type="file" accept="image/*,video/*" id="project-main" className="d-none" onChange={handleFileChange} disabled={isSubmitting} />
+              <label htmlFor="project-main" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer transition-all hover-bg-light" style={{ borderStyle: 'dashed', maxWidth: '100%' }}>
                 {previewUrl ? (
-                  fileType === 'video' ? <video src={previewUrl} style={{maxHeight:'150px'}} /> : <img src={previewUrl} style={{maxHeight:'150px'}} />
-                ) : <div className="p-4 text-muted">اضغط للاختيار</div>}
+                  <div className="position-relative">
+                    {fileType === 'video' ? (
+                        <video src={previewUrl} style={{maxHeight:'200px', maxWidth:'100%'}} controls className="rounded shadow-sm" />
+                    ) : (
+                        <img src={previewUrl} style={{maxHeight:'200px', maxWidth:'100%'}} className="rounded shadow-sm" />
+                    )}
+                    <div className="mt-2 text-primary fw-bold small">اضغط لتغيير الغلاف</div>
+                  </div>
+                ) : (
+                    <div className="p-4 d-flex flex-column align-items-center gap-2 text-muted">
+                        <span className="material-symbols-outlined fs-1">add_a_photo</span>
+                        <span className="fw-bold">اختر صورة أو فيديو للغلاف</span>
+                    </div>
+                )}
               </label>
             </Form.Group>
 
-            <Card className="bg-light border-0 rounded-4 mb-5">
+            <Card className="bg-light border-0 rounded-4 mb-5 shadow-inner">
               <Card.Body className="p-4">
-                <h6 className="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
-                   <span className="material-symbols-outlined">collections</span> صور إضافية للمشروع
+                <h6 className="fw-bold text-dark mb-4 d-flex align-items-center gap-2 border-bottom pb-2">
+                   <span className="material-symbols-outlined text-primary">collections</span> معرض الصور الإضافية
                 </h6>
-                <input type="file" multiple accept="image/*" id="gallery-proj" className="d-none" onChange={handleGalleryChange} />
-                <label htmlFor="gallery-proj" className="btn btn-outline-primary btn-sm fw-bold mb-3">إضافة صور</label>
+                <input type="file" multiple accept="image/*" id="gallery-proj" className="d-none" onChange={handleGalleryChange} disabled={isSubmitting} />
+                <label htmlFor="gallery-proj" className="btn btn-primary rounded-pill px-4 fw-bold mb-4 shadow-sm d-inline-flex align-items-center gap-2">
+                    <span className="material-symbols-outlined fs-5">upload_file</span> إضافة صور للمعرض
+                </label>
                 
-                <Row className="g-2">
+                <Row className="g-3">
                   {existingImages.map((url, idx) => (
-                    <Col key={`ex-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded object-fit-cover shadow-sm" style={{ height: '80px' }} />
-                      <button type="button" onClick={() => removeExistingGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
+                    <Col key={`ex-${idx}`} xs={6} sm={4} md={3} lg={2} className="position-relative">
+                      <div className="ratio ratio-1x1 rounded overflow-hidden shadow-sm border bg-white">
+                        <img src={url} className="object-fit-cover" />
+                      </div>
+                      <button type="button" onClick={() => removeExistingGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-2 rounded-circle shadow-sm" disabled={isSubmitting}>×</button>
                     </Col>
                   ))}
                   {galleryPreviews.map((url, idx) => (
-                    <Col key={`new-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded border border-primary object-fit-cover" style={{ height: '80px' }} />
-                      <button type="button" onClick={() => removeNewGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
+                    <Col key={`new-${idx}`} xs={6} sm={4} md={3} lg={2} className="position-relative">
+                      <div className="ratio ratio-1x1 rounded overflow-hidden shadow-sm border border-primary border-2 bg-white">
+                        <img src={url} className="object-fit-cover" />
+                      </div>
+                      <button type="button" onClick={() => removeNewGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-2 rounded-circle shadow-sm" disabled={isSubmitting}>×</button>
                     </Col>
                   ))}
+                  {existingImages.length === 0 && galleryPreviews.length === 0 && (
+                      <Col xs={12} className="text-center py-4 text-muted">
+                          <p className="mb-0 small fw-bold">لم يتم اختيار أي صور إضافية بعد</p>
+                      </Col>
+                  )}
                 </Row>
               </Card.Body>
             </Card>
 
-            <Form.Check type="switch" label="نشر في الموقع" {...register("isActive")} className="mb-4 fw-bold" />
+            <div className="bg-white p-3 rounded-4 border mb-4 shadow-sm">
+                <Form.Check 
+                    type="switch" 
+                    id="active-switch"
+                    label="تفعيل المشروع ونشره للعامة فوراً" 
+                    {...register("isActive")} 
+                    className="fw-bold text-primary fs-5" 
+                    disabled={isSubmitting}
+                />
+            </div>
 
-            <Button variant="primary" type="submit" className="w-100 py-3 fw-bold d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner size="sm" animation="border" /> : <><span className="material-symbols-outlined">save</span> حفظ المشروع</>}
+            <Button 
+                variant="primary" 
+                type="submit" 
+                className="w-100 py-3 fw-bold d-flex justify-content-center align-items-center gap-2 rounded-pill shadow fs-5 mb-3" 
+                disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                  <><Spinner size="sm" animation="border" /> جاري حفظ البيانات والرفع...</>
+              ) : (
+                  <><span className="material-symbols-outlined">save</span> {id ? 'حفظ التعديلات النهائية' : 'إنشاء ونشر المشروع'}</>
+              )}
             </Button>
           </Form>
         </Card.Body>

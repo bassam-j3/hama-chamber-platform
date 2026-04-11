@@ -7,7 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { FaqsService } from './faqs.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -27,6 +29,7 @@ export class FaqsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.faqsService.findAll();
   }

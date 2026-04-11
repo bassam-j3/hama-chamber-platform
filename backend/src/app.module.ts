@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config'; // 👈 استيراد الإعدادات
+import { ConfigModule } from '@nestjs/config'; 
+import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -15,12 +16,15 @@ import { LawsModule } from './laws/laws.module';
 import { CircularsModule } from './circulars/circulars.module';
 import { BoardMembersModule } from './board-members/board-members.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { EmailsModule } from './emails/emails.module'; // 👈 استيراد موديول الإيميلات
+import { EmailsModule } from './emails/emails.module'; 
 
 @Module({
   imports: [
-    // تهيئة موديول الإعدادات وجعله عالمياً ليشمل كل ملفات المشروع
     ConfigModule.forRoot({ isGlobal: true }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000, // Cache responses for 60 seconds by default
+    }),
     PrismaModule,
     CloudinaryModule,
     AuthModule,
@@ -36,7 +40,7 @@ import { EmailsModule } from './emails/emails.module'; // 👈 استيراد م
     LawsModule,
     CircularsModule,
     BoardMembersModule,
-    EmailsModule, // 👈 تسجيل الموديول هنا
+    EmailsModule, 
   ],
 })
 export class AppModule {}

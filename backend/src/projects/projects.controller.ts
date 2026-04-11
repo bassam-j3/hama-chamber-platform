@@ -11,6 +11,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
@@ -43,6 +44,7 @@ export class ProjectsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.projectsService.findAll();
   }

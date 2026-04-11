@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ExhibitionsService } from './exhibitions.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -47,6 +48,7 @@ export class ExhibitionsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.exhibitionsService.findAll();
   }

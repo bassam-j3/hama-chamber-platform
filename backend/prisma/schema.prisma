@@ -34,6 +34,8 @@ model Project {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model Circular {
@@ -46,7 +48,7 @@ model Circular {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
   @@index([category])
 }
 
@@ -59,7 +61,7 @@ model Law {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model News {
@@ -72,7 +74,7 @@ model News {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model MarketPrice {
@@ -91,7 +93,7 @@ model Exhibition {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model Opportunity {
@@ -103,7 +105,7 @@ model Opportunity {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model Banner {

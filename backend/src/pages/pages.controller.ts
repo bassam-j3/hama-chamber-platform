@@ -7,7 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { PagesService } from './pages.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -22,6 +24,7 @@ export class PagesController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.pagesService.findAll();
   }

@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { OpportunitiesService } from './opportunities.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -47,6 +48,7 @@ export class OpportunitiesController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.opportunitiesService.findAll();
   }

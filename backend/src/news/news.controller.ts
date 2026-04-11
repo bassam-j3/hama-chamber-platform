@@ -11,6 +11,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -21,11 +22,13 @@ export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll(@Query('search') search?: string, @Query('status') status?: string) {
     return this.newsService.findAll({ search, status });
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
   findOne(@Param('id') id: string) {
     return this.newsService.findOne(id);
   }

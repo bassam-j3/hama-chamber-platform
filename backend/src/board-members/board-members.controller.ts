@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { BoardMembersService } from './board-members.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,11 +21,13 @@ export class BoardMembersController {
   constructor(private readonly boardMembersService: BoardMembersService) {}
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.boardMembersService.findAll();
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
   findOne(@Param('id') id: string) {
     return this.boardMembersService.findOne(id);
   }

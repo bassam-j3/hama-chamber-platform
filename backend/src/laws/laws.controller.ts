@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { LawsService } from './laws.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -35,6 +36,7 @@ export class LawsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   findAll() {
     return this.lawsService.findAll();
   }

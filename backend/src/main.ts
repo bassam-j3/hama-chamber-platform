@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
 
@@ -33,6 +34,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.use(helmet());
+  app.use(cookieParser());
 
   // Advanced Logging Middleware (Morgan)
   const morganFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';

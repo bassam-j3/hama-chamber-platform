@@ -1,46 +1,54 @@
-import React, { useState } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+// Secure HttpOnly Auth Context
+import React, { useState, useEffect, useContext } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import { AuthContext, type User } from './Context';
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const getInitialUser = (): User | null => {
-    const storedUser = localStorage.getItem('user');
-    try {
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch {
-      return null;
-    }
-  };
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getInitialToken = (): string | null => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-    }
-    return storedToken;
-  };
+  // تحقق من الجلسة عند بدء التطبيق عبر الـ Cookie
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const response = await axiosInstance.get('/auth/me');
+        setUser(response.data);
+      } catch {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    checkSession();
+  }, []);
 
-  const [user, setUser] = useState<User | null>(getInitialUser);
-  const [token, setToken] = useState<string | null>(getInitialToken);
-
-  const login = (newToken: string, newUser: User) => {
-    setToken(newToken);
+  const login = (_newToken: string, newUser: User) => {
+    // newToken is kept for interface compatibility but we rely on HttpOnly cookies
     setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
   };
 
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    delete axiosInstance.defaults.headers.common['Authorization'];
+  const logout = async () => {
+    try {
+      await axiosInstance.post('/auth/logout');
+    } catch (error) {
+      console.error('Logout error', error);
+    } finally {
+      setUser(null);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token: null, isLoading, login, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

@@ -115,7 +115,6 @@ export default function FaqForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">الإجابة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-expect-error ReactQuill readOnly prop type mismatch */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("answer", val, { shouldValidate: true })} style={{ height: '200px' }} />
               </div>
               {errors.answer && <div className="text-danger mt-5 small fw-bold">{errors.answer.message}</div>}

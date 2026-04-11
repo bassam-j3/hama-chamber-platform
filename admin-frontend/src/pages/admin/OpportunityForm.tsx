@@ -136,7 +136,6 @@ export default function OpportunityForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">تفاصيل وشروط الفرصة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-expect-error ReactQuill readOnly prop type mismatch */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
               </div>
               {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}

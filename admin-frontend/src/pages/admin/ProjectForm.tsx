@@ -157,7 +157,6 @@ export default function ProjectForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold">التفاصيل</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-expect-error ReactQuill value prop type mismatch */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val)} style={{ height: '300px' }} />
               </div>
             </Form.Group>

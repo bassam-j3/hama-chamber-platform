@@ -177,7 +177,6 @@ export default function PageForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">محتوى الصفحة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-expect-error ReactQuill value prop type mismatch */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '400px' }} />
               </div>
             </Form.Group>

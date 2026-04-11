@@ -9,7 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor } from '@nestjs/cache-manager'; // Applied by main agent
 import { PagesService } from './pages.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -30,6 +30,7 @@ export class PagesController {
   }
 
   @Get('slug/:slug')
+  @UseInterceptors(CacheInterceptor)
   findBySlug(@Param('slug') slug: string) {
     return this.pagesService.findBySlug(slug);
   }

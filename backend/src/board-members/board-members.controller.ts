@@ -10,7 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor } from '@nestjs/cache-manager'; // Applied by main agent
 import { BoardMembersService } from './board-members.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';

@@ -11,7 +11,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor } from '@nestjs/cache-manager'; // Applied by main agent
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';

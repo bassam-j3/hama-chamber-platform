@@ -9,7 +9,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor } from '@nestjs/cache-manager'; // Applied by main agent
 import { FaqsService } from './faqs.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 

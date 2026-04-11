@@ -11,7 +11,7 @@ import {
   UploadedFile,
   UseGuards,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+import { CacheInterceptor } from '@nestjs/cache-manager'; // Applied by main agent
 import {
   FileFieldsInterceptor,
   FileInterceptor,

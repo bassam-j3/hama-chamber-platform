@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config'; // 👈 استيراد الإعدادات
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
@@ -21,6 +24,11 @@ import { EmailsModule } from './emails/emails.module'; // 👈 استيراد م
   imports: [
     // تهيئة موديول الإعدادات وجعله عالمياً ليشمل كل ملفات المشروع
     ConfigModule.forRoot({ isGlobal: true }),
+    CacheModule.register({ isGlobal: true }), // Registered for Item 3.1
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
     PrismaModule,
     CloudinaryModule,
     AuthModule,
@@ -37,6 +45,12 @@ import { EmailsModule } from './emails/emails.module'; // 👈 استيراد م
     CircularsModule,
     BoardMembersModule,
     EmailsModule, // 👈 تسجيل الموديول هنا
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

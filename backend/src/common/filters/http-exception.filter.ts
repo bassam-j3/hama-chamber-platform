@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-@Catch() // 👈 تركها فارغة يعني أنه سيصطاد "جميع" أنواع الأخطاء حتى التي لم نتوقعها
+@Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
@@ -18,35 +18,46 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // تحديد كود الحالة (مثلاً 400 للبيانات الخاطئة، 404 لغير الموجود، أو 500 لخطأ السيرفر)
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    // استخراج رسالة الخطأ
     const exceptionResponse =
       exception instanceof HttpException
         ? exception.getResponse()
-        : 'حدث خطأ داخلي في الخادم';
+        : 'Internal server error';
 
-    // تنسيق رسالة الخطأ (لأن NestJS أحياناً يرجعها كنص وأحياناً ككائن Object)
     const errorMessage =
       typeof exceptionResponse === 'string'
         ? exceptionResponse
         : (exceptionResponse as any).message || exceptionResponse;
 
-    // طباعة الخطأ في الـ Terminal للمطور (يساعدك جداً في اكتشاف الأخطاء)
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    
+    // Log detailed error
+    const logData = {
+      method: request.method,
+      url: request.url,
+      status,
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      stack: isDevelopment && exception instanceof Error ? exception.stack : undefined,
+    };
+
+    // Redact sensitive body data if needed, but we avoid logging body here for security
     this.logger.error(
-      `[${request.method}] ${request.url} - Status: ${status} - Error: ${JSON.stringify(errorMessage)}`,
+      `[${request.method}] ${request.url} - Status: ${status} - Error: ${typeof errorMessage === 'object' ? JSON.stringify(errorMessage) : errorMessage}`,
+      isDevelopment && exception instanceof Error ? exception.stack : '',
     );
 
-    // إرسال الرد الموحد للفرونت إند
     response.status(status).json({
       success: false,
       error: errorMessage,
       timestamp: new Date().toISOString(),
       path: request.url,
+      // Only include stack trace in development
+      stack: isDevelopment && exception instanceof Error ? exception.stack : undefined,
     });
   }
 }

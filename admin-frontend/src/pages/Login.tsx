@@ -20,7 +20,7 @@ export default function Login() {
     try {
       const response = await axiosInstance.post('/auth/login', { email, password });
       // تخزين بيانات الدخول
-      login(response.data.access_token, response.data.user);
+      login(response.data.user);
       // التوجيه للوحة التحكم
       navigate('/admin');
     } catch (err: unknown) {

@@ -11,10 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { CircularsService } from './circulars.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { uploadOptions } from '../common/utils/upload-options';
 
 @Controller('circulars')
 export class CircularsController {
@@ -25,7 +25,7 @@ export class CircularsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  @UseInterceptors(FileInterceptor('image', uploadOptions))
   async create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
     let imageUrl = undefined;
 
@@ -54,7 +54,7 @@ export class CircularsController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  @UseInterceptors(FileInterceptor('image', uploadOptions))
   async update(
     @Param('id') id: string,
     @Body() body: any,

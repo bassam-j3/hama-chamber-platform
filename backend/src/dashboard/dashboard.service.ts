@@ -43,4 +43,35 @@ export class DashboardService {
       faqs,
     };
   }
+
+  async getRecentActivity() {
+    const [news, projects, circulars] = await Promise.all([
+      this.prisma.news.findMany({
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, title: true, createdAt: true },
+      }),
+      this.prisma.project.findMany({
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, title: true, createdAt: true },
+      }),
+      this.prisma.circular.findMany({
+        take: 3,
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, title: true, createdAt: true },
+      }),
+    ]);
+
+    const activity = [
+      ...news.map((n) => ({ ...n, type: 'NEWS', icon: 'campaign' })),
+      ...projects.map((p) => ({ ...p, type: 'PROJECT', icon: 'domain' })),
+      ...circulars.map((c) => ({ ...c, type: 'CIRCULAR', icon: 'assignment' })),
+    ].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return activity.slice(0, 5);
+  }
 }

@@ -152,7 +152,36 @@ export class EmailsService {
     }
   }
 
-  // 4. إرسال بريد جديد
+  // 4. حذف الرسالة (نقلها لسلة المهملات)
+  async deleteEmail(uid: number) {
+    const client = this.createImapClient();
+    try {
+      await client.connect();
+      const mailboxes = await client.list();
+      const trashFolder = mailboxes.find(
+        (m) =>
+          m.specialUse === '\\Trash' ||
+          m.path.toLowerCase().includes('trash') ||
+          m.path.toLowerCase().includes('deleted'),
+      );
+
+      const targetPath = trashFolder ? trashFolder.path : 'Trash';
+
+      const lock = await client.getMailboxLock('INBOX');
+      try {
+        await client.messageMove(uid.toString(), targetPath, { uid: true });
+      } finally {
+        lock.release();
+      }
+      await client.logout();
+      return { success: true };
+    } catch (error) {
+      console.error('IMAP Delete Error:', error);
+      throw new InternalServerErrorException('فشل حذف الرسالة');
+    }
+  }
+
+  // 5. إرسال بريد جديد
   async sendEmail(
     to: string,
     subject: string,
@@ -163,13 +192,12 @@ export class EmailsService {
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT),
-        secure: process.env.SMTP_PORT === '465', // يكون false إذا كان البورت 587
+        secure: process.env.SMTP_PORT === '465',
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
         tls: {
-          // هذا السطر السحري يجبر السيرفر على الاتصال حتى لو كانت شهادة SCS غير عالمية
           rejectUnauthorized: false,
         },
       });
@@ -192,5 +220,21 @@ export class EmailsService {
     } catch (error) {
       throw new InternalServerErrorException('فشل الإرسال');
     }
+  }
+
+  // 6. استقبال رسائل تواصل معنا من الموقع العام
+  async sendContactMessage(name: string, email: string, subject: string, message: string) {
+    const html = `
+      <div dir="rtl" style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h2 style="color: #0056b3;">رسالة تواصل جديدة من الموقع العام</h2>
+        <p><strong>الاسم:</strong> ${name}</p>
+        <p><strong>البريد الإلكتروني:</strong> ${email}</p>
+        <p><strong>الموضوع:</strong> ${subject}</p>
+        <hr/>
+        <p style="white-space: pre-wrap;">${message}</p>
+      </div>
+    `;
+    const to = this.config.get<string>('SMTP_USER') || '';
+    return await this.sendEmail(to, `[Contact Form] ${subject}`, html);
   }
 }

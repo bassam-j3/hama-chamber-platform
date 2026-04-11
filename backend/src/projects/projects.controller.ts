@@ -15,9 +15,9 @@ import {
   FileFieldsInterceptor,
   FileInterceptor,
 } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 import { ProjectsService } from './projects.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { uploadOptions } from '../common/utils/upload-options';
 
 @Controller('projects')
 export class ProjectsController {
@@ -31,7 +31,7 @@ export class ProjectsController {
         { name: 'image', maxCount: 1 },
         { name: 'gallery', maxCount: 10 },
       ],
-      { storage: memoryStorage() },
+      uploadOptions,
     ),
   )
   async create(
@@ -55,7 +55,7 @@ export class ProjectsController {
         { name: 'image', maxCount: 1 },
         { name: 'gallery', maxCount: 10 },
       ],
-      { storage: memoryStorage() },
+      uploadOptions,
     ),
   )
   async update(

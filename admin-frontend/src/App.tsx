@@ -48,14 +48,19 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UsersManagement from './pages/admin/UsersManagement';
 import UserForm from './pages/admin/UserForm';
 import QrGenerator from './pages/admin/QrGenerator';
+import RoleGuard from './components/RoleGuard';
+
+import { Spinner } from 'react-bootstrap';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="d-flex vh-100 justify-content-center align-items-center"><Spinner animation="border" variant="primary" /></div>;
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 const PublicOnlyRoute = ({ children }: { children: React.ReactElement }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) return <div className="d-flex vh-100 justify-content-center align-items-center"><Spinner animation="border" variant="primary" /></div>;
   return isAuthenticated ? <Navigate to="/admin" replace /> : children;
 };
 
@@ -100,9 +105,11 @@ export default function App() {
               <Route index element={<AdminDashboard />} />
               <Route path="inbox" element={<Inbox />} />  
               
-              <Route path="users" element={<UsersManagement />} />
-              <Route path="users/create" element={<UserForm />} />
-              <Route path="users/edit/:id" element={<UserForm />} />
+              <Route element={<RoleGuard allowedRoles={['ADMIN']} />}>
+                <Route path="users" element={<UsersManagement />} />
+                <Route path="users/create" element={<UserForm />} />
+                <Route path="users/edit/:id" element={<UserForm />} />
+              </Route>
               
               <Route path="board-members" element={<BoardMembers />} />
               <Route path="board-members/create" element={<BoardMemberForm />} />

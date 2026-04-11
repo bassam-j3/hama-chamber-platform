@@ -67,25 +67,33 @@ export default function UserForm() {
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold text-dark">الاسم الكامل</Form.Label>
-              <Form.Control type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={isSubmitting} className="py-2" />
+              <Form.Label className="fw-bold text-dark d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined fs-5">badge</span> الاسم الكامل
+              </Form.Label>
+              <Form.Control type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={isSubmitting} className="py-2 rounded-3" />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold text-dark">البريد الإلكتروني</Form.Label>
-              <Form.Control type="email" dir="ltr" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required disabled={isSubmitting} className="py-2" />
+              <Form.Label className="fw-bold text-dark d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined fs-5">mail</span> البريد الإلكتروني
+              </Form.Label>
+              <Form.Control type="email" dir="ltr" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required disabled={isSubmitting} className="py-2 rounded-3" />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold text-dark">كلمة المرور {isEdit && <small className="text-muted fw-normal">(اتركها فارغة إذا لم ترد تغييرها)</small>}</Form.Label>
-              <Form.Control type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!isEdit} disabled={isSubmitting} className="py-2" dir="ltr" />
+              <Form.Label className="fw-bold text-dark d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined fs-5">lock</span> كلمة المرور {isEdit && <small className="text-muted fw-normal">(اتركها فارغة إذا لم ترد تغييرها)</small>}
+              </Form.Label>
+              <Form.Control type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!isEdit} disabled={isSubmitting} className="py-2 rounded-3" dir="ltr" />
             </Form.Group>
 
             <Form.Group className="mb-4">
-              <Form.Label className="fw-bold text-dark">الصلاحية (الرتبة)</Form.Label>
-              <Form.Select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} disabled={isSubmitting} className="py-2 fw-bold">
-                <option value="EDITOR">محرر (صلاحيات محدودة)</option>
-                <option value="ADMIN">مدير نظام (صلاحيات كاملة)</option>
+              <Form.Label className="fw-bold text-dark d-flex align-items-center gap-2">
+                <span className="material-symbols-outlined fs-5">admin_panel_settings</span> الصلاحية (الرتبة)
+              </Form.Label>
+              <Form.Select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} disabled={isSubmitting} className="py-2 fw-bold rounded-3">
+                <option value="EDITOR">محرر (صلاحيات محدودة - إدارة المحتوى فقط)</option>
+                <option value="ADMIN">مدير نظام (صلاحيات كاملة - إدارة المستخدمين والمحتوى)</option>
               </Form.Select>
             </Form.Group>
 

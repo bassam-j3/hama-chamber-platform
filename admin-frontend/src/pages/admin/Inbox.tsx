@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Spinner, Button, Modal, Form, Dropdown, DropdownButton } from 'react-bootstrap';
 import axiosInstance from '../../api/axiosInstance';
+import toast from 'react-hot-toast';
 
 interface EmailListItem {
   id: string;
@@ -34,6 +35,9 @@ export default function Inbox() {
   const [selectedEmail, setSelectedEmail] = useState<EmailDetails | null>(null);
   const [showReadModal, setShowReadModal] = useState(false);
 
+  // حالات حذف رسالة
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // حالات إرسال رسالة جديدة (Compose)
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [sending, setSending] = useState(false);
@@ -51,6 +55,7 @@ export default function Inbox() {
       setError('');
     } catch {
       setError('تعذر تحميل الرسائل. يرجى التأكد من الاتصال.');
+      toast.error('فشل تحميل الرسائل');
     } finally {
       setLoadingList(false);
     }
@@ -82,9 +87,27 @@ export default function Inbox() {
       }
     } catch {
       setError('حدث خطأ أثناء جلب تفاصيل الرسالة.');
+      toast.error('فشل تحميل محتوى الرسالة');
       setShowReadModal(false);
     } finally {
       setLoadingDetails(false);
+    }
+  };
+
+  // حذف الرسالة
+  const handleDeleteEmail = async () => {
+    if (!selectedEmail) return;
+    setIsDeleting(true);
+    const toastId = toast.loading('جاري نقل الرسالة لسلة المهملات...');
+    try {
+      await axiosInstance.delete(`/emails/inbox/${selectedEmail.id}`);
+      setEmails(prev => prev.filter(e => e.id !== selectedEmail.id));
+      toast.success('تم حذف الرسالة بنجاح', { id: toastId });
+      setShowReadModal(false);
+    } catch {
+      toast.error('فشل حذف الرسالة', { id: toastId });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -92,6 +115,7 @@ export default function Inbox() {
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
+    const toastId = toast.loading('جاري إرسال الرسالة...');
     try {
       const formData = new FormData();
       formData.append('to', composeTo);
@@ -108,9 +132,9 @@ export default function Inbox() {
       
       setShowComposeModal(false);
       setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null);
-      alert('تم إرسال الرسالة بنجاح! 🚀');
+      toast.success('تم إرسال الرسالة بنجاح! 🚀', { id: toastId });
     } catch {
-      alert('حدث خطأ أثناء إرسال الرسالة، تأكد من الإعدادات.');
+      toast.error('حدث خطأ أثناء إرسال الرسالة', { id: toastId });
     } finally {
       setSending(false);
     }
@@ -128,8 +152,8 @@ export default function Inbox() {
   };
 
   return (
-    <div className="d-flex flex-column h-100">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="d-flex flex-column h-100" dir="rtl">
+      <div className="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
           <h2 className="text-primary fw-bold mb-0 d-flex align-items-center gap-2">
             <span className="material-symbols-outlined fs-2 text-gold">mail</span>
@@ -138,14 +162,16 @@ export default function Inbox() {
           <p className="text-muted small mt-1">إدارة مراسلات الغرفة التجارية</p>
         </div>
         
-        <div className="d-flex gap-2">
+        <div className="d-flex flex-wrap gap-2">
           <DropdownButton 
             title={
               <span className="d-flex align-items-center gap-2">
                 <span className="material-symbols-outlined fs-5">
                   {currentFolder === 'INBOX' ? 'inbox' : currentFolder === 'SENT' ? 'send' : 'report'}
                 </span>
-                {currentFolder === 'INBOX' ? 'الوارد' : currentFolder === 'SENT' ? 'المرسل' : 'المزعجة'}
+                <span className="d-none d-sm-inline">
+                   {currentFolder === 'INBOX' ? 'الوارد' : currentFolder === 'SENT' ? 'المرسل' : 'المزعجة'}
+                </span>
               </span>
             }
             variant="outline-primary"
@@ -158,8 +184,9 @@ export default function Inbox() {
             <Dropdown.Item eventKey="SPAM" className="d-flex align-items-center gap-2 text-danger"><span className="material-symbols-outlined fs-6">report</span>الرسائل المزعجة (Spam)</Dropdown.Item>
           </DropdownButton>
 
-          <Button variant="primary" onClick={() => { setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null); setShowComposeModal(true); }} className="fw-bold px-4 d-flex align-items-center gap-2 shadow-sm">
-            <span className="material-symbols-outlined fs-5">edit_square</span>رسالة جديدة
+          <Button variant="primary" onClick={() => { setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null); setShowComposeModal(true); }} className="fw-bold px-3 px-md-4 d-flex align-items-center gap-2 shadow-sm">
+            <span className="material-symbols-outlined fs-5">edit_square</span>
+            <span className="d-none d-md-inline">رسالة جديدة</span>
           </Button>
           
           <Button variant="light" onClick={() => fetchEmails()} disabled={loadingList} className="d-flex align-items-center justify-content-center shadow-sm border-0 hover-bg-primary hover-text-white transition-all text-primary">
@@ -174,7 +201,7 @@ export default function Inbox() {
           <h6 className="mb-0 fw-bold">الرسائل في {currentFolder === 'INBOX' ? 'الوارد' : currentFolder === 'SENT' ? 'المرسل' : 'المزعجة'}</h6>
         </div>
 
-        <div className="p-0 overflow-auto custom-scrollbar" style={{ maxHeight: '65vh' }}>
+        <div className="p-0 overflow-auto custom-scrollbar" style={{ maxHeight: 'calc(100vh - 280px)' }}>
           {loadingList ? (
             <div className="d-flex flex-column justify-content-center align-items-center p-5 h-100">
               <Spinner animation="border" variant="primary" />
@@ -194,7 +221,7 @@ export default function Inbox() {
                   <div className="flex-grow-1 overflow-hidden">
                     <div className="d-flex justify-content-between align-items-center mb-1">
                       <h6 className={`mb-0 text-truncate ${email.isUnread ? 'fw-bold text-primary' : 'text-dark'}`} style={{ maxWidth: '70%' }}>{email.from}</h6>
-                      <small className="text-muted" dir="ltr">{new Date(email.date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</small>
+                      <small className="text-muted small-mobile" dir="ltr">{new Date(email.date).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}</small>
                     </div>
                     <p className={`mb-0 text-truncate small ${email.isUnread ? 'fw-bold text-dark' : 'text-muted'}`}>{email.subject}</p>
                   </div>
@@ -206,7 +233,7 @@ export default function Inbox() {
       </Card>
 
       {/* 1️⃣ نافذة القراءة */}
-      <Modal show={showReadModal} onHide={() => setShowReadModal(false)} size="xl" centered dir="rtl">
+      <Modal show={showReadModal} onHide={() => setShowReadModal(false)} size="xl" centered dir="rtl" fullscreen="lg-down">
         <Modal.Header closeButton className="bg-light border-bottom-0 pb-0">
           <Modal.Title className="text-primary fw-bold fs-5">قراءة الرسالة</Modal.Title>
         </Modal.Header>
@@ -218,9 +245,9 @@ export default function Inbox() {
               <div className="mb-4 pb-3 border-bottom">
                 <h4 className="fw-bold text-dark mb-3">{selectedEmail.subject}</h4>
                 <div className="d-flex align-items-center gap-2">
-                  <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}><span className="material-symbols-outlined">person</span></div>
-                  <div>
-                    <div className="fw-bold small">{selectedEmail.from}</div>
+                  <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '40px', height: '40px' }}><span className="material-symbols-outlined">person</span></div>
+                  <div className="overflow-hidden">
+                    <div className="fw-bold small text-truncate">{selectedEmail.from}</div>
                     <div className="text-muted" style={{ fontSize: '0.75rem' }} dir="ltr">{new Date(selectedEmail.date).toLocaleString('ar-EG')}</div>
                   </div>
                 </div>
@@ -235,7 +262,7 @@ export default function Inbox() {
                   <h6 className="fw-bold mb-3 d-flex align-items-center gap-2 text-dark"><span className="material-symbols-outlined text-primary">attachment</span> المرفقات ({selectedEmail.attachments.length})</h6>
                   <div className="d-flex flex-wrap gap-3">
                     {selectedEmail.attachments.map((att, index) => (
-                      <div key={index} className="border border-light rounded-4 p-2 d-flex align-items-center gap-3 bg-white shadow-sm" style={{ minWidth: '250px' }}>
+                      <div key={index} className="border border-light rounded-4 p-2 d-flex align-items-center gap-3 bg-white shadow-sm flex-grow-1" style={{ minWidth: '200px', maxWidth: '300px' }}>
                         <div className="bg-light rounded-3 p-2 text-primary d-flex align-items-center justify-content-center">
                           <span className="material-symbols-outlined fs-2">{att.contentType.includes('pdf') ? 'picture_as_pdf' : att.contentType.includes('image') ? 'image' : 'insert_drive_file'}</span>
                         </div>
@@ -252,20 +279,26 @@ export default function Inbox() {
             </>
           ) : <div className="text-center p-4 text-danger">فشل تحميل الرسالة</div>}
         </Modal.Body>
-        <Modal.Footer className="border-top-0 pt-0">
-          <Button variant="secondary" onClick={() => setShowReadModal(false)}>إغلاق</Button>
-          <Button variant="outline-primary" className="d-flex align-items-center gap-1" onClick={handleReply}><span className="material-symbols-outlined fs-6">reply</span> رد</Button>
+        <Modal.Footer className="border-top-0 pt-0 flex-wrap gap-2">
+          <Button variant="outline-danger" className="d-flex align-items-center gap-1 px-4 rounded-pill" onClick={handleDeleteEmail} disabled={isDeleting}>
+            {isDeleting ? <Spinner animation="border" size="sm" /> : <span className="material-symbols-outlined fs-6">delete</span>}
+            حذف
+          </Button>
+          <div className="ms-auto d-flex gap-2">
+            <Button variant="outline-primary" className="d-flex align-items-center gap-1 px-4 rounded-pill" onClick={handleReply} disabled={isDeleting}><span className="material-symbols-outlined fs-6">reply</span> رد</Button>
+            <Button variant="secondary" className="px-4 rounded-pill" onClick={() => setShowReadModal(false)}>إغلاق</Button>
+          </div>
         </Modal.Footer>
       </Modal>
 
       {/* 2️⃣ نافذة الإرسال */}
-      <Modal show={showComposeModal} onHide={() => setShowComposeModal(false)} size="lg" centered dir="rtl" backdrop="static">
+      <Modal show={showComposeModal} onHide={() => setShowComposeModal(false)} size="lg" centered dir="rtl" backdrop="static" fullscreen="lg-down">
         <Form onSubmit={handleSendEmail}>
           <Modal.Header closeButton className="bg-primary text-white border-bottom-0 pb-3" style={{ borderBottomWidth: '3px', borderBottomColor: 'var(--bs-gold)', borderBottomStyle: 'solid' }}>
             <Modal.Title className="fw-bold fs-5 d-flex align-items-center gap-2"><span className="material-symbols-outlined">edit_square</span> رسالة جديدة</Modal.Title>
           </Modal.Header>
           <Modal.Body className="bg-light">
-            <Card className="border-0 shadow-sm p-4 rounded-4">
+            <Card className="border-0 shadow-sm p-3 p-md-4 rounded-4">
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold text-primary small">إلى</Form.Label>
                 <Form.Control type="email" placeholder="example@domain.com" required value={composeTo} onChange={e => setComposeTo(e.target.value)} className="rounded-3 bg-light border-0 py-2" />
@@ -285,8 +318,8 @@ export default function Inbox() {
             </Card>
           </Modal.Body>
           <Modal.Footer className="bg-light border-top-0 pt-0">
-            <Button variant="secondary" className="rounded-3 px-4" onClick={() => setShowComposeModal(false)} disabled={sending}>إلغاء</Button>
-            <Button variant="primary" type="submit" className="rounded-3 px-4 d-flex align-items-center gap-2 shadow-sm" disabled={sending}>
+            <Button variant="secondary" className="rounded-pill px-4" onClick={() => setShowComposeModal(false)} disabled={sending}>إلغاء</Button>
+            <Button variant="primary" type="submit" className="rounded-pill px-4 d-flex align-items-center gap-2 shadow-sm" disabled={sending}>
               {sending ? <Spinner animation="border" size="sm" /> : <span className="material-symbols-outlined fs-6">send</span>}
               {sending ? 'جاري الإرسال...' : 'إرسال الرسالة'}
             </Button>
@@ -294,6 +327,14 @@ export default function Inbox() {
         </Form>
       </Modal>
 
+      <style>
+        {`
+          .small-mobile { font-size: 0.75rem; }
+          @media (max-width: 576px) {
+            .list-group-item { padding: 0.75rem !important; }
+          }
+        `}
+      </style>
     </div>
   );
 }

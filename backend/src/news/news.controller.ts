@@ -14,6 +14,7 @@ import {
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { uploadOptions } from '../common/utils/upload-options';
 
 @Controller('news')
 export class NewsController {
@@ -31,7 +32,7 @@ export class NewsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(AnyFilesInterceptor())
+  @UseInterceptors(AnyFilesInterceptor(uploadOptions))
   async create(
     @Body() body: any,
     @UploadedFiles() files: Express.Multer.File[],
@@ -43,7 +44,7 @@ export class NewsController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(AnyFilesInterceptor())
+  @UseInterceptors(AnyFilesInterceptor(uploadOptions))
   async update(
     @Param('id') id: string,
     @Body() body: any,

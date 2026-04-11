@@ -9,6 +9,7 @@ import {
   Body,
   UseInterceptors,
   UploadedFiles,
+  Delete,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { EmailsService } from './emails.service';
@@ -36,6 +37,11 @@ export class EmailsController {
     return await this.emailsService.markEmailAsRead(id);
   }
 
+  @Delete('inbox/:id')
+  async deleteEmail(@Param('id', ParseIntPipe) id: number) {
+    return await this.emailsService.deleteEmail(id);
+  }
+
   @Post('send')
   @UseInterceptors(FilesInterceptor('attachments'))
   async sendEmail(
@@ -45,5 +51,15 @@ export class EmailsController {
     @UploadedFiles() attachments?: Array<Express.Multer.File>,
   ) {
     return await this.emailsService.sendEmail(to, subject, html, attachments);
+  }
+
+  @Post('contact')
+  async contact(
+    @Body('name') name: string,
+    @Body('email') email: string,
+    @Body('subject') subject: string,
+    @Body('message') message: string,
+  ) {
+    return await this.emailsService.sendContactMessage(name, email, subject, message);
   }
 }

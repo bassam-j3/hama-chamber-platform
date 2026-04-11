@@ -13,6 +13,7 @@ import {
 import { BoardMembersService } from './board-members.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { uploadOptions } from '../common/utils/upload-options';
 
 @Controller('board-members')
 export class BoardMembersController {
@@ -30,14 +31,14 @@ export class BoardMembersController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', uploadOptions))
   create(@Body() body: any, @UploadedFile() file: Express.Multer.File) {
     return this.boardMembersService.create(body, file);
   }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image', uploadOptions))
   update(
     @Param('id') id: string,
     @Body() body: any,

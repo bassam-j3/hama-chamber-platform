@@ -1,26 +1,10 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  // وضعنا رابط Render مباشرة كحماية احتياطية في حال لم يتم قراءة الـ .env أثناء الرفع لـ Firebase
   baseURL: import.meta.env.VITE_API_URL || 'https://hama-chamber-api.onrender.com/api/v1',
   withCredentials: true,
 });
 
-// Request Interceptor: Attach JWT Token automatically
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response Interceptor: Unwrap data & Handle 401 Expirations
 axiosInstance.interceptors.response.use(
   (response) => {
     if (response.data && response.data.success === true && response.data.data !== undefined) {
@@ -29,13 +13,11 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle Token Expiration
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Only redirect if not already on the login page to prevent loops
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/admin')) {
+         // Optionally, redirect to login if you prefer
+      } else if (window.location.pathname.startsWith('/admin')) {
+         window.location.href = '/login';
       }
     }
     return Promise.reject(error);

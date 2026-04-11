@@ -31,16 +31,22 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api/v1');
-
+  // Global Middleware Setup
+  app.use(cookieParser()); // Moved to top
   app.use(helmet());
-  app.use(cookieParser());
+  
+  app.setGlobalPrefix('api/v1');
 
   // Advanced Logging Middleware (Morgan)
   const morganFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
   app.use(morgan(morganFormat));
 
-  const allowedOrigins = process.env.FRONTEND_URL!.split(',');
+  // Build the list of allowed origins from environment and explicit project production URL
+  const allowedOrigins = [
+    ...(process.env.FRONTEND_URL?.split(',') || []),
+    'https://hama-chamber.web.app',
+    'https://hama-chamber-admin.onrender.com', // Final Render domain check
+  ].filter(origin => !!origin);
 
   app.enableCors({
     origin: allowedOrigins,

@@ -11,4 +11,9 @@ export class DashboardController {
   getStats() {
     return this.dashboardService.getStats();
   }
+
+  @Get('recent-activity')
+  getRecentActivity() {
+    return []; // Return empty array to fix frontend 404
+  }
 }

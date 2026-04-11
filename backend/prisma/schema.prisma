@@ -22,7 +22,7 @@ model BoardMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model Project {
@@ -49,7 +49,7 @@ model Circular {
   updatedAt DateTime @updatedAt
 
   @@index([isActive, createdAt(sort: Desc)])
-  @@index([category])
+  @@index([category, isActive])
 }
 
 model Law {
@@ -117,7 +117,7 @@ model Banner {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model Faq {
@@ -128,7 +128,7 @@ model Faq {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model Page {
@@ -141,7 +141,7 @@ model Page {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([isActive])
+  @@index([isActive, createdAt(sort: Desc)])
 }
 
 model User {
@@ -156,5 +156,5 @@ model User {
   resetPasswordExpires DateTime?
   resetPasswordToken   String?
 
-  @@index([isActive])
+  @@index([role, isActive])
 }

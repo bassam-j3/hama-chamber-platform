@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,6 +16,15 @@ const projectSchema = z.object({
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
+
+interface Project {
+  id: string;
+  title: string;
+  content: string;
+  isActive: boolean;
+  imageUrl?: string;
+  images?: string[];
+}
 
 export default function ProjectForm() {
   const navigate = useNavigate();
@@ -40,34 +49,34 @@ export default function ProjectForm() {
   
   const editorContent = watch("content");
 
-  useEffect(() => {
-    if (id) {
-      const stateProject = location.state?.projectItem;
-      if (stateProject) {
-        populateForm(stateProject);
-      } else {
-        setIsLoading(true);
-        axiosInstance.get("/projects")
-          .then(res => {
-            const item = res.data.find((p: any) => p.id === id);
-            if (item) populateForm(item);
-          })
-          .catch(() => { // تم حذف err غير المستخدم هنا لحل الخطأ 6133
-            toast.error("فشل في تحميل بيانات المشروع");
-          })
-          .finally(() => setIsLoading(false));
-      }
-    }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
+  const populateForm = useCallback((data: Project) => {
     setValue("title", data.title);
     setValue("content", data.content);
     setValue("isActive", data.isActive);
     setPreviewUrl(data.imageUrl || null);
     setExistingImages(data.images || []);
     setFileType(data.imageUrl?.match(/\.(mp4|webm|ogg|mov)$/i) ? 'video' : 'image');
-  };
+  }, [setValue]);
+
+  useEffect(() => {
+    if (id) {
+      const stateProject = location.state?.projectItem as Project | undefined;
+      if (stateProject) {
+        populateForm(stateProject);
+      } else {
+        setIsLoading(true);
+        axiosInstance.get("/projects")
+          .then(res => {
+            const item = res.data.find((p: Project) => p.id === id);
+            if (item) populateForm(item);
+          })
+          .catch(() => {
+            toast.error("فشل في تحميل بيانات المشروع");
+          })
+          .finally(() => setIsLoading(false));
+      }
+    }
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -120,8 +129,7 @@ export default function ProjectForm() {
         toast.success('تمت إضافة المشروع بنجاح!', { id: toastId });
       }
       navigate('/admin/projects');
-    } catch (error) { 
-        console.error(error);
+    } catch { 
       toast.error('حدث خطأ أثناء الحفظ.', { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
@@ -142,14 +150,14 @@ export default function ProjectForm() {
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold">عنوان المشروع</Form.Label>
-              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" />
+              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" id="title" />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold">التفاصيل</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
+                {/* @ts-expect-error ReactQuill value prop type mismatch */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val)} style={{ height: '300px' }} />
               </div>
             </Form.Group>
@@ -159,7 +167,7 @@ export default function ProjectForm() {
               <input type="file" accept="image/*,video/*" id="project-main" className="d-none" onChange={handleFileChange} />
               <label htmlFor="project-main" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer" style={{ borderStyle: 'dashed' }}>
                 {previewUrl ? (
-                  fileType === 'video' ? <video src={previewUrl} style={{maxHeight:'150px'}} /> : <img src={previewUrl} style={{maxHeight:'150px'}} />
+                  fileType === 'video' ? <video src={previewUrl} style={{maxHeight:'150px'}} /> : <img src={previewUrl} style={{maxHeight:'150px'}} alt="Preview" />
                 ) : <div className="p-4 text-muted">اضغط للاختيار</div>}
               </label>
             </Form.Group>
@@ -175,13 +183,13 @@ export default function ProjectForm() {
                 <Row className="g-2">
                   {existingImages.map((url, idx) => (
                     <Col key={`ex-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded object-fit-cover shadow-sm" style={{ height: '80px' }} />
+                      <img src={url} className="w-100 rounded object-fit-cover shadow-sm" style={{ height: '80px' }} alt="Existing" />
                       <button type="button" onClick={() => removeExistingGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
                     </Col>
                   ))}
                   {galleryPreviews.map((url, idx) => (
                     <Col key={`new-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded border border-primary object-fit-cover" style={{ height: '80px' }} />
+                      <img src={url} className="w-100 rounded border border-primary object-fit-cover" style={{ height: '80px' }} alt="New" />
                       <button type="button" onClick={() => removeNewGalleryImage(idx)} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle">×</button>
                     </Col>
                   ))}
@@ -189,7 +197,7 @@ export default function ProjectForm() {
               </Card.Body>
             </Card>
 
-            <Form.Check type="switch" label="نشر في الموقع" {...register("isActive")} className="mb-4 fw-bold" />
+            <Form.Check type="switch" label="نشر في الموقع" {...register("isActive")} className="mb-4 fw-bold" id="isActive" />
 
             <Button variant="primary" type="submit" className="w-100 py-3 fw-bold d-flex justify-content-center align-items-center gap-2" disabled={isSubmitting}>
               {isSubmitting ? <Spinner size="sm" animation="border" /> : <><span className="material-symbols-outlined">save</span> حفظ المشروع</>}

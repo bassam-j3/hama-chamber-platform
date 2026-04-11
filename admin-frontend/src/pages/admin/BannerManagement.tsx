@@ -28,8 +28,7 @@ export default function BannerManagement() {
     try {
       const response = await axiosInstance.get("/banners");
       setBanners(response.data);
-    } catch (err: any) {
-      console.error(err);
+    } catch {
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى.");
       toast.error('فشل في جلب البانرات');
     } finally {
@@ -51,8 +50,7 @@ export default function BannerManagement() {
       setShowDeleteModal(false);
       setItemToDelete(null);
       toast.success('تم حذف البانر بنجاح', { id: toastId });
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error('حدث خطأ أثناء الحذف', { id: toastId });
     } finally {
       setIsDeleting(false);

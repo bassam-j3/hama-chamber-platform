@@ -1,7 +1,8 @@
-import  { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Button, Form, Spinner, Row, Col } from 'react-bootstrap';
 import { QRCodeCanvas } from 'qrcode.react';
 import axiosInstance from '../../api/axiosInstance';
+import toast from 'react-hot-toast';
 
 interface PageItem {
   id: string;
@@ -20,6 +21,14 @@ export default function QrGenerator() {
   // كلمة سرية للتشفير (حتى لا يستطيع أحد تزوير الرابط)
   const SECRET_SALT = "HAMA_CHAMBER_SECURE_2026";
 
+  // دالة تشفير الرابط
+  const generateSecureLink = useCallback((slug: string) => {
+    // ندمج الرابط مع الكلمة السرية، ثم نشفره بصيغة Base64
+    const rawData = `${slug}|||${SECRET_SALT}`;
+    const encryptedToken = btoa(encodeURIComponent(rawData)); // تشفير
+    setTargetUrl(`${baseUrl}/qr/${encryptedToken}`);
+  }, [baseUrl]);
+
   useEffect(() => {
     const fetchPages = async () => {
       try {
@@ -28,22 +37,14 @@ export default function QrGenerator() {
         if (response.data.length > 0) {
           generateSecureLink(response.data[0].slug);
         }
-      } catch (error) {
-        console.error('Error fetching pages', error);
+      } catch {
+        toast.error('فشل في جلب الصفحات');
       } finally {
         setLoading(false);
       }
     };
     fetchPages();
-  }, [baseUrl]);
-
-  // دالة تشفير الرابط
-  const generateSecureLink = (slug: string) => {
-    // ندمج الرابط مع الكلمة السرية، ثم نشفره بصيغة Base64
-    const rawData = `${slug}|||${SECRET_SALT}`;
-    const encryptedToken = btoa(encodeURIComponent(rawData)); // تشفير
-    setTargetUrl(`${baseUrl}/qr/${encryptedToken}`);
-  };
+  }, [generateSecureLink]);
 
   const downloadQRCode = () => {
     if (qrRef.current) {
@@ -55,6 +56,7 @@ export default function QrGenerator() {
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
+      toast.success('تم تحميل رمز QR بنجاح');
     }
   };
 
@@ -83,7 +85,7 @@ export default function QrGenerator() {
                   <Form.Group className="mb-4">
                     <Form.Label className="fw-bold text-primary small">الصفحة الديناميكية:</Form.Label>
                     <Form.Select 
-                      className="rounded-3 py-2 bg-light border-0 fw-bold"
+                      className="rounded-3 py-2 bg-light border-0 fw-bold shadow-none"
                       onChange={(e) => generateSecureLink(e.target.value)}
                     >
                       {pages.map(page => (
@@ -128,7 +130,7 @@ export default function QrGenerator() {
 
               <Button 
                 variant="light" 
-                className="w-100 fw-bold d-flex align-items-center justify-content-center gap-2 text-primary shadow-sm py-2 rounded-3"
+                className="w-100 fw-bold d-flex align-items-center justify-content-center gap-2 text-primary shadow-sm py-2 rounded-pill"
                 onClick={downloadQRCode}
                 disabled={!targetUrl}
               >

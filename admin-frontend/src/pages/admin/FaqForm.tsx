@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,6 +17,13 @@ const faqSchema = z.object({
 
 type FormValues = z.infer<typeof faqSchema>;
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  isActive: boolean;
+}
+
 export default function FaqForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -31,32 +38,31 @@ export default function FaqForm() {
   
   const editorContent = watch("answer");
 
+  const populateForm = useCallback((data: FAQ) => {
+    setValue("question", data.question);
+    setValue("answer", data.answer);
+    setValue("isActive", data.isActive);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
-      const stateItem = location.state?.faqItem;
+      const stateItem = location.state?.faqItem as FAQ | undefined;
       if (stateItem) {
         populateForm(stateItem);
       } else {
         setIsLoading(true);
         axiosInstance.get("/faqs")
           .then(res => {
-            const item = res.data.find((f: any) => f.id === id);
+            const item = res.data.find((f: FAQ) => f.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => {
-            console.error(err);
+          .catch(() => {
             toast.error("فشل في تحميل بيانات السؤال");
           })
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("question", data.question);
-    setValue("answer", data.answer);
-    setValue("isActive", data.isActive);
-  };
+  }, [id, location.state, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -70,7 +76,7 @@ export default function FaqForm() {
         toast.success("تمت إضافة السؤال بنجاح!", { id: toastId });
       }
       navigate('/admin/faqs', { replace: true });
-    } catch (error) { 
+    } catch { 
         toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
     } finally { 
         setIsSubmitting(false); 
@@ -102,14 +108,14 @@ export default function FaqForm() {
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">نص السؤال</Form.Label>
-              <Form.Control type="text" placeholder="مثال: ما هي الأوراق المطلوبة لتجديد السجل التجاري؟" isInvalid={!!errors.question} {...register("question")} className="py-2 fw-bold" disabled={isSubmitting} />
+              <Form.Control type="text" placeholder="مثال: ما هي الأوراق المطلوبة لتجديد السجل التجاري؟" isInvalid={!!errors.question} {...register("question")} className="py-2 fw-bold" disabled={isSubmitting} id="question" />
               <Form.Control.Feedback type="invalid">{errors.question?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">الإجابة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
+                {/* @ts-expect-error ReactQuill readOnly prop type mismatch */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("answer", val, { shouldValidate: true })} style={{ height: '200px' }} />
               </div>
               {errors.answer && <div className="text-danger mt-5 small fw-bold">{errors.answer.message}</div>}
@@ -117,7 +123,7 @@ export default function FaqForm() {
 
             <Form.Group className="mb-5 pt-3 border-top">
               <Form.Label className="fw-bold text-dark">حالة النشر</Form.Label>
-              <Form.Check type="switch" label="عرض السؤال في الموقع العام" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
+              <Form.Check type="switch" label="عرض السؤال في الموقع العام" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} id="isActive" />
             </Form.Group>
 
             <Button variant="primary" type="submit" className="px-5 py-3 fw-bold w-100 shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2 rounded-pill" disabled={isSubmitting}>

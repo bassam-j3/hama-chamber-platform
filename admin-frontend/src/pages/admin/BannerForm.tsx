@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,11 +9,19 @@ import toast from 'react-hot-toast';
 
 const bannerSchema = z.object({
   title: z.string().min(3, "عنوان البانر مطلوب"),
-  link: z.string().url().optional().or(z.literal('')),
+  link: z.string().url("يجب أن يكون الرابط صحيحاً").optional().or(z.literal('')),
   isActive: z.boolean(),
 });
 
 type FormValues = z.infer<typeof bannerSchema>;
+
+interface Banner {
+  id: string;
+  title: string;
+  link: string | null;
+  isActive: boolean;
+  imageUrl?: string;
+}
 
 export default function BannerForm() {
   const navigate = useNavigate();
@@ -31,33 +39,32 @@ export default function BannerForm() {
     defaultValues: { isActive: true, link: "" }
   });
 
+  const populateForm = useCallback((data: Banner) => {
+    setValue("title", data.title);
+    setValue("link", data.link || "");
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
-      const stateItem = location.state?.bannerItem;
+      const stateItem = location.state?.bannerItem as Banner | undefined;
       if (stateItem) {
         populateForm(stateItem);
       } else {
         setIsLoading(true);
         axiosInstance.get("/banners")
           .then(res => {
-            const item = res.data.find((b: any) => b.id === id);
+            const item = res.data.find((b: Banner) => b.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => {
-              console.error(err);
+          .catch(() => {
               toast.error("فشل في تحميل بيانات البانر");
           })
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("link", data.link || "");
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-  };
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -95,7 +102,7 @@ export default function BannerForm() {
       
       navigate('/admin/banners', { replace: true });
       
-    } catch (error) { 
+    } catch { 
       toast.error("حدث خطأ أثناء حفظ البانر.", { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 

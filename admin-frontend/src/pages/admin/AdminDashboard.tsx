@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
 import { Container, Row, Col, Card, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 
 interface DashboardStats {
   pages: number;

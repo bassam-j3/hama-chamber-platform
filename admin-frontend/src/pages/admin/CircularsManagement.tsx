@@ -21,7 +21,7 @@ export default function CircularsManagement() {
       const response = await axiosInstance.get("/circulars"); 
       setCirculars(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب التعاميم');
     } 
@@ -39,8 +39,7 @@ export default function CircularsManagement() {
       setCirculars(circulars.filter(c => c.id !== itemToDelete));
       setShowDeleteModal(false); setItemToDelete(null);
       toast.success('تم حذف التعميم بنجاح', { id: toastId });
-    } catch (error) { 
-      console.error(error); 
+    } catch { 
       toast.error('حدث خطأ أثناء الحذف', { id: toastId });
     } finally { setIsDeleting(false); }
   };

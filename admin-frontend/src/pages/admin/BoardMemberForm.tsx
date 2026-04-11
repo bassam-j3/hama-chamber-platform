@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,6 +15,14 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+interface BoardMember {
+  id: string;
+  name: string;
+  roleTitle: string;
+  isActive: boolean;
+  imageUrl?: string;
+}
+
 export default function BoardMemberForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -30,28 +38,29 @@ export default function BoardMemberForm() {
     defaultValues: { isActive: true }
   });
 
+  const populateForm = useCallback((data: BoardMember) => {
+    setValue("name", data.name);
+    setValue("roleTitle", data.roleTitle);
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
-      // 🔴 الخطأ كان هنا: تم تغييره من item إلى memberItem ليطابق زر التعديل
-      const stateItem = location.state?.memberItem; 
+      const stateItem = location.state?.memberItem as BoardMember | undefined; 
       if (stateItem) {
         populateForm(stateItem);
       } else {
         setIsLoading(true);
         axiosInstance.get("/board-members").then(res => {
-          const item = res.data.find((p: any) => p.id === id);
+          const item = res.data.find((p: BoardMember) => p.id === id);
           if (item) populateForm(item);
+        }).catch(() => {
+          toast.error("فشل في تحميل بيانات العضو");
         }).finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("name", data.name);
-    setValue("roleTitle", data.roleTitle);
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-  };
+  }, [id, location.state, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -71,7 +80,7 @@ export default function BoardMemberForm() {
         toast.success('تمت الإضافة بنجاح!', { id: toastId });
       }
       navigate('/admin/board-members');
-    } catch (error) {
+    } catch {
       toast.error('حدث خطأ أثناء الحفظ', { id: toastId });
     } finally {
       setIsSubmitting(false);
@@ -108,20 +117,20 @@ export default function BoardMemberForm() {
 
             <Form.Group className="mb-5 text-center p-4 bg-light rounded-4 border" style={{ borderStyle: 'dashed' }}>
               <Form.Label className="fw-bold d-block mb-3">الصورة الشخصية</Form.Label>
-              <input type="file" accept="image/*" id="member-image" className="d-none" onChange={(e: any) => {
-                const file = e.target.files[0];
+              <input type="file" accept="image/*" id="member-image" className="d-none" onChange={(e) => {
+                const file = e.target.files?.[0];
                 if (file) { setSelectedFile(file); setPreviewUrl(URL.createObjectURL(file)); }
               }} />
               <label htmlFor="member-image" className="cursor-pointer">
                 {previewUrl ? (
-                   <img src={previewUrl} className="rounded-circle object-fit-cover shadow-sm border border-4 border-white" style={{ width: '120px', height: '120px' }} />
+                   <img src={previewUrl} className="rounded-circle object-fit-cover shadow-sm border border-4 border-white" style={{ width: '120px', height: '120px' }} alt="Preview" />
                 ) : (
                   <div className="btn btn-outline-primary rounded-pill px-4 fw-bold">اختر صورة من جهازك</div>
                 )}
               </label>
             </Form.Group>
 
-            <Form.Check type="switch" label="عضو نشط (يظهر في الموقع)" {...register("isActive")} className="mb-4 fw-bold fs-5" />
+            <Form.Check type="switch" label="عضو نشط (يظهر في الموقع)" {...register("isActive")} className="mb-4 fw-bold fs-5" id="isActive" />
             
             <Button variant="primary" type="submit" disabled={isSubmitting} className="w-100 py-3 fw-bold rounded-pill shadow-sm fs-5">
               {isSubmitting ? <Spinner size="sm" animation="border" /> : 'حفظ البيانات'}

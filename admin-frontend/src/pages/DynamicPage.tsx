@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { Container, Spinner, Badge } from 'react-bootstrap';
 import axiosInstance from '../api/axiosInstance';
-import { useAuth } from '../context/AuthContext'; // 👈 1. استيراد حالة تسجيل الدخول
+import { useAuth } from '../context/useAuth'; // 👈 1. استيراد حالة تسجيل الدخول
 
 interface PageData {
   id: string;
@@ -53,7 +53,7 @@ export default function DynamicPage() {
         } else {
           setStatus('error');
         }
-      } catch (err) {
+      } catch {
         setStatus('error');
       }
     };

@@ -28,7 +28,7 @@ export default function ProjectsManagement() {
     try { 
       const response = await axiosInstance.get("/projects"); 
       setProjects(response.data); 
-    } catch (err: any) { 
+    } catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى.");
     } finally { 
       setIsLoading(false); 
@@ -44,7 +44,9 @@ export default function ProjectsManagement() {
       await axiosInstance.delete(`/projects/${itemToDelete}`);
       setProjects(projects.filter(p => p.id !== itemToDelete));
       setShowDeleteModal(false); setItemToDelete(null);
-    } catch (error) { console.error(error); } finally { setIsDeleting(false); }
+    } catch { 
+      // Error handled by modal state or toast if added
+    } finally { setIsDeleting(false); }
   };
 
   return (

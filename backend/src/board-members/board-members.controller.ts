@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { BoardMembersService } from './board-members.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -27,7 +38,11 @@ export class BoardMembersController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('image'))
-  update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  update(
+    @Param('id') id: string,
+    @Body() body: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     return this.boardMembersService.update(id, body, file);
   }
 

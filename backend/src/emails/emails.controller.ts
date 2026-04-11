@@ -1,4 +1,15 @@
-import { Controller, Get, Param, Put, Query, ParseIntPipe, Post, Body, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Put,
+  Query,
+  ParseIntPipe,
+  Post,
+  Body,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { EmailsService } from './emails.service';
 
@@ -9,7 +20,7 @@ export class EmailsController {
   @Get('list')
   async getEmails(
     @Query('folder') folder: string = 'INBOX',
-    @Query('limit') limit?: string
+    @Query('limit') limit?: string,
   ) {
     const fetchLimit = limit ? parseInt(limit, 10) : 15;
     return await this.emailsService.getLatestEmails(folder, fetchLimit);
@@ -31,7 +42,7 @@ export class EmailsController {
     @Body('to') to: string,
     @Body('subject') subject: string,
     @Body('html') html: string,
-    @UploadedFiles() attachments?: Array<Express.Multer.File>
+    @UploadedFiles() attachments?: Array<Express.Multer.File>,
   ) {
     return await this.emailsService.sendEmail(to, subject, html, attachments);
   }

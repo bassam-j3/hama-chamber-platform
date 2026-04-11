@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom'; // أضفنا Link هنا
 import { Container, Card, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import axiosInstance from '../api/axiosInstance';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -23,8 +23,9 @@ export default function Login() {
       login(response.data.access_token, response.data.user);
       // التوجيه للوحة التحكم
       navigate('/admin');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'فشل تسجيل الدخول، يرجى التأكد من البيانات');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'فشل تسجيل الدخول، يرجى التأكد من البيانات');
     } finally {
       setIsLoading(false);
     }

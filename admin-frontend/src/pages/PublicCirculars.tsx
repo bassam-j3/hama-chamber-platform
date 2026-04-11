@@ -15,7 +15,7 @@ export default function PublicCirculars() {
     try {
       const response = await axiosInstance.get('/circulars');
       setData(response.data.filter((i: Circular) => i.isActive));
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل التعاميم والقرارات.');
     } finally { setLoading(false); }
   };

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,12 +28,15 @@ export class UsersController {
 
   // مسار متاح للجميع (إعادة تعيين كلمة المرور)
   @Post('reset-password/:token')
-  resetPassword(@Param('token') token: string, @Body('password') password: string) {
+  resetPassword(
+    @Param('token') token: string,
+    @Body('password') password: string,
+  ) {
     return this.usersService.resetPassword(token, password);
   }
 
   // ================= مسارات محمية ================= //
-  
+
   // فقط الـ ADMIN يستطيع إضافة مدراء
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)

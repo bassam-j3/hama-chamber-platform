@@ -20,8 +20,9 @@ export default function ForgotPassword() {
         message: 'تم إنشاء رابط الاستعادة بنجاح.',
         token: response.data.resetToken 
       });
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.response?.data?.message || 'البريد الإلكتروني غير مسجل لدينا' });
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setStatus({ type: 'error', message: error.response?.data?.message || 'البريد الإلكتروني غير مسجل لدينا' });
     } finally {
       setIsLoading(false);
     }

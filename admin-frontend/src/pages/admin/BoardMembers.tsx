@@ -21,7 +21,7 @@ export default function BoardMembers() {
       const response = await axiosInstance.get("/board-members"); 
       setData(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب الأعضاء');
     } 
@@ -40,8 +40,7 @@ export default function BoardMembers() {
       setShowDeleteModal(false); setItemToDelete(null);
       toast.success('تم الحذف بنجاح', { id: toastId });
       fetchData(); // Refetch automatically
-    } catch (error) { 
-      console.error(error); 
+    } catch { 
       toast.error('فشل الحذف', { id: toastId });
     } finally { setIsDeleting(false); }
   };

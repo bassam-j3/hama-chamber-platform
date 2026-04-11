@@ -4,6 +4,13 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import toast from 'react-hot-toast';
 
+interface UserItem {
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+}
+
 export default function UserForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -15,10 +22,10 @@ export default function UserForm() {
 
   useEffect(() => {
     if (isEdit && location.state?.userItem) {
-      const u = location.state.userItem;
+      const u = location.state.userItem as UserItem;
       setFormData({ name: u.name, email: u.email, password: '', role: u.role || 'EDITOR', isActive: u.isActive });
     }
-  }, [id, location.state]);
+  }, [isEdit, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +38,7 @@ export default function UserForm() {
     const toastId = toast.loading(isEdit ? 'جاري تحديث بيانات المستخدم...' : 'جاري إضافة المستخدم...');
 
     try {
-      const payload: any = { ...formData };
+      const payload: Partial<typeof formData> = { ...formData };
       if (isEdit && !payload.password) delete payload.password;
 
       if (isEdit) {
@@ -43,8 +50,9 @@ export default function UserForm() {
       }
       
       navigate('/admin/users', { replace: true });
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم', { id: toastId });
+    } catch (err) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      toast.error(axiosError.response?.data?.message || 'حدث خطأ أثناء حفظ المستخدم', { id: toastId });
     } finally {
       setIsSubmitting(false);
     }
@@ -67,29 +75,29 @@ export default function UserForm() {
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold text-dark">الاسم الكامل</Form.Label>
-              <Form.Control type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={isSubmitting} className="py-2" />
+              <Form.Control type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={isSubmitting} className="py-2" id="name" />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold text-dark">البريد الإلكتروني</Form.Label>
-              <Form.Control type="email" dir="ltr" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required disabled={isSubmitting} className="py-2" />
+              <Form.Control type="email" dir="ltr" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required disabled={isSubmitting} className="py-2" id="email" />
             </Form.Group>
 
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold text-dark">كلمة المرور {isEdit && <small className="text-muted fw-normal">(اتركها فارغة إذا لم ترد تغييرها)</small>}</Form.Label>
-              <Form.Control type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!isEdit} disabled={isSubmitting} className="py-2" dir="ltr" />
+              <Form.Control type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required={!isEdit} disabled={isSubmitting} className="py-2" dir="ltr" id="password" />
             </Form.Group>
 
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">الصلاحية (الرتبة)</Form.Label>
-              <Form.Select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} disabled={isSubmitting} className="py-2 fw-bold">
+              <Form.Select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} disabled={isSubmitting} className="py-2 fw-bold" id="role">
                 <option value="EDITOR">محرر (صلاحيات محدودة)</option>
                 <option value="ADMIN">مدير نظام (صلاحيات كاملة)</option>
               </Form.Select>
             </Form.Group>
 
             <Form.Group className="mb-4 pt-3 border-top">
-              <Form.Check type="switch" label="حساب نشط (يمكنه تسجيل الدخول للوحة التحكم)" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
+              <Form.Check type="switch" label="حساب نشط (يمكنه تسجيل الدخول للوحة التحكم)" checked={formData.isActive} onChange={e => setFormData({...formData, isActive: e.target.checked})} className="fw-bold text-primary fs-5" disabled={isSubmitting} id="isActive" />
             </Form.Group>
 
             <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm fs-5 d-flex justify-content-center align-items-center gap-2 rounded-pill" disabled={isSubmitting}>

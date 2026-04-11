@@ -15,7 +15,7 @@ export default function PublicExhibitions() {
     try {
       const response = await axiosInstance.get('/exhibitions');
       setData(response.data.filter((i: Exhibition) => i.isActive));
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل المعارض والمؤتمرات.');
     } finally { setLoading(false); }
   };

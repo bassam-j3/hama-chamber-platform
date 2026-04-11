@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,6 +16,15 @@ const newsSchema = z.object({
 });
 
 type NewsFormValues = z.infer<typeof newsSchema>;
+
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  isActive: boolean;
+  imageUrl?: string;
+  images?: string[];
+}
 
 export default function NewsForm() {
   const navigate = useNavigate();
@@ -41,34 +50,33 @@ export default function NewsForm() {
   
   const editorContent = watch("content");
 
+  const populateForm = useCallback((data: NewsItem) => {
+    setValue("title", data.title);
+    setValue("content", data.content);
+    setValue("isActive", data.isActive);
+    setPreviewUrl(data.imageUrl || null);
+    setExistingImages(data.images || []); 
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
-      const stateNews = location.state?.newsItem;
+      const stateNews = location.state?.newsItem as NewsItem | undefined;
       if (stateNews) {
         populateForm(stateNews);
       } else {
         setIsLoading(true);
         axiosInstance.get("/news")
           .then(res => {
-            const item = res.data.find((n: any) => n.id === id);
+            const item = res.data.find((n: NewsItem) => n.id === id);
             if (item) populateForm(item);
           })
-          .catch(err => {
-            console.error(err);
+          .catch(() => {
             toast.error("فشل في تحميل بيانات الخبر");
           })
           .finally(() => setIsLoading(false));
       }
     }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title);
-    setValue("content", data.content);
-    setValue("isActive", data.isActive);
-    setPreviewUrl(data.imageUrl || null);
-    setExistingImages(data.images || []); 
-  };
+  }, [id, location.state, populateForm]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -122,7 +130,7 @@ export default function NewsForm() {
       }
       
       navigate('/admin/news', { replace: true });
-    } catch (error) { 
+    } catch { 
       toast.error("حدث خطأ أثناء حفظ الخبر.", { id: toastId }); 
     } finally { 
       setIsSubmitting(false); 
@@ -154,14 +162,14 @@ export default function NewsForm() {
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold text-dark">عنوان الخبر</Form.Label>
-              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" disabled={isSubmitting} />
+              <Form.Control type="text" isInvalid={!!errors.title} {...register("title")} className="py-2" disabled={isSubmitting} id="title" />
               <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">تفاصيل الخبر</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
+                {/* @ts-expect-error ReactQuill readOnly prop type mismatch */}
                 <ReactQuill readOnly={isSubmitting} theme="snow" value={editorContent || ""} onChange={(val) => setValue("content", val, { shouldValidate: true })} style={{ height: '300px' }} />
               </div>
               {errors.content && <div className="text-danger mt-5 small fw-bold">{errors.content.message}</div>}
@@ -174,7 +182,7 @@ export default function NewsForm() {
               <label htmlFor="main-upload" className="border border-2 border-primary rounded-4 p-3 d-inline-block cursor-pointer transition-hover" style={{ borderStyle: 'dashed', backgroundColor: '#f8f9fa' }}>
                 {previewUrl ? (
                   <div className="position-relative">
-                    <img src={previewUrl} className="rounded-3 shadow-sm" style={{ maxHeight: '150px' }} />
+                    <img src={previewUrl} className="rounded-3 shadow-sm" style={{ maxHeight: '150px' }} alt="Main" />
                     <div className="mt-2 text-primary fw-bold small"><span className="material-symbols-outlined align-middle fs-6">edit</span> تغيير الغلاف</div>
                   </div>
                 ) : (
@@ -200,7 +208,7 @@ export default function NewsForm() {
                 <Row className="g-3 mt-1">
                   {existingImages.map((url, idx) => (
                     <Col key={`ex-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded shadow-sm object-fit-cover border" style={{ height: '80px' }} />
+                      <img src={url} className="w-100 rounded shadow-sm object-fit-cover border" style={{ height: '80px' }} alt="Existing" />
                       <button type="button" onClick={() => removeExistingGalleryImage(idx)} disabled={isSubmitting} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: '24px', height: '24px' }}>
                         <span className="material-symbols-outlined fs-6">close</span>
                       </button>
@@ -208,7 +216,7 @@ export default function NewsForm() {
                   ))}
                   {galleryPreviews.map((url, idx) => (
                     <Col key={`new-${idx}`} xs={4} md={2} className="position-relative">
-                      <img src={url} className="w-100 rounded shadow-sm border border-2 border-primary object-fit-cover" style={{ height: '80px' }} />
+                      <img src={url} className="w-100 rounded shadow-sm border border-2 border-primary object-fit-cover" style={{ height: '80px' }} alt="New" />
                       <button type="button" onClick={() => removeNewGalleryImage(idx)} disabled={isSubmitting} className="btn btn-danger btn-sm position-absolute top-0 start-0 m-1 rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: '24px', height: '24px' }}>
                         <span className="material-symbols-outlined fs-6">close</span>
                       </button>
@@ -219,7 +227,7 @@ export default function NewsForm() {
             </Card>
 
             <Form.Group className="mb-4">
-              <Form.Check type="switch" label="نشر فوراً (مرئي للعامة)" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} />
+              <Form.Check type="switch" label="نشر فوراً (مرئي للعامة)" {...register("isActive")} className="fw-bold text-primary fs-5" disabled={isSubmitting} id="isActive" />
             </Form.Group>
 
             <Button variant="primary" type="submit" className="w-100 py-3 fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2 rounded-pill fs-5" disabled={isSubmitting}>

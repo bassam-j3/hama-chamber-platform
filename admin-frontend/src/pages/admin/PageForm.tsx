@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,13 +12,22 @@ import toast from 'react-hot-toast';
 
 const pageSchema = z.object({
   title: z.string().min(3, "عنوان الصفحة مطلوب"),
-  slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9\u0600-\u06FF\-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية أو عربية وأرقام وشرطات (-) فقط"),
+  slug: z.string().min(2, "الرابط مطلوب").regex(/^[a-z0-9\u0600-\u06FF-]+$/, "الرابط يجب أن يحتوي على أحرف إنجليزية أو عربية وأرقام وشرطات (-) فقط"),
   content: z.string().min(10, "محتوى الصفحة مطلوب"),
   isActive: z.boolean(),
   isSecure: z.boolean(),
 });
 
 type FormValues = z.infer<typeof pageSchema>;
+
+interface Page {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  isActive: boolean;
+  isSecure: boolean;
+}
 
 export default function PageForm() {
   const navigate = useNavigate();
@@ -41,39 +50,38 @@ export default function PageForm() {
 
   useEffect(() => {
     if (!id && titleValue) {
-      const generatedSlug = titleValue.trim().replace(/[\s_]+/g, '-').replace(/[^\w\u0600-\u06FF\-]+/g, ''); 
+      const generatedSlug = titleValue.trim().replace(/[\s_]+/g, '-').replace(/[^\w\u0600-\u06FF-]+/g, ''); 
       setValue("slug", generatedSlug, { shouldValidate: true });
     }
   }, [titleValue, id, setValue]);
 
-  useEffect(() => {
-    if (id) {
-      const stateItem = location.state?.pageItem;
-      if (stateItem) {
-        populateForm(stateItem);
-      } else {
-        setIsLoading(true);
-        axiosInstance.get("/pages")
-          .then((res: any) => { 
-            const item = res.data.find((p: any) => p.id === id);
-            if (item) populateForm(item);
-          })
-          .catch((err: any) => {
-              console.error(err);
-              toast.error("فشل تحميل بيانات الصفحة");
-          }) 
-          .finally(() => setIsLoading(false));
-      }
-    }
-  }, [id, location.state]);
-
-  const populateForm = (data: any) => {
+  const populateForm = useCallback((data: Page) => {
     setValue("title", data.title);
     setValue("slug", data.slug);
     setValue("content", data.content);
     setValue("isActive", data.isActive);
     setValue("isSecure", data.isSecure || false);
-  };
+  }, [setValue]);
+
+  useEffect(() => {
+    if (id) {
+      const stateItem = location.state?.pageItem as Page | undefined;
+      if (stateItem) {
+        populateForm(stateItem);
+      } else {
+        setIsLoading(true);
+        axiosInstance.get("/pages")
+          .then(res => { 
+            const item = res.data.find((p: Page) => p.id === id);
+            if (item) populateForm(item);
+          })
+          .catch(() => {
+              toast.error("فشل تحميل بيانات الصفحة");
+          }) 
+          .finally(() => setIsLoading(false));
+      }
+    }
+  }, [id, location.state, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -95,8 +103,9 @@ export default function PageForm() {
         navigate('/admin/pages');
       }
 
-    } catch (error: any) { 
-      if(error.response?.data?.message?.includes('Unique constraint')) {
+    } catch (error) { 
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      if(axiosError.response?.data?.message?.includes('Unique constraint')) {
         toast.error("هذا الرابط (Slug) مستخدم لصفحة أخرى، يرجى تغييره.", { id: toastId });
       } else {
         toast.error("حدث خطأ أثناء الحفظ.", { id: toastId }); 
@@ -149,7 +158,7 @@ export default function PageForm() {
               <Col md={6}>
                 <Form.Group className="mb-4">
                   <Form.Label className="fw-bold text-dark">عنوان الصفحة</Form.Label>
-                  <Form.Control type="text" placeholder="مثال: عن الغرفة..." isInvalid={!!errors.title} {...register("title")} className="py-2 fw-bold" />
+                  <Form.Control type="text" placeholder="مثال: عن الغرفة..." isInvalid={!!errors.title} {...register("title")} className="py-2 fw-bold" id="title" />
                   <Form.Control.Feedback type="invalid">{errors.title?.message}</Form.Control.Feedback>
                 </Form.Group>
               </Col>
@@ -158,7 +167,7 @@ export default function PageForm() {
                   <Form.Label className="fw-bold text-dark">الرابط المخصص (Slug)</Form.Label>
                   <InputGroup hasValidation dir="ltr">
                     <InputGroup.Text id="basic-addon1">/page/</InputGroup.Text>
-                    <Form.Control type="text" isInvalid={!!errors.slug} {...register("slug")} className="py-2 fw-bold text-primary" />
+                    <Form.Control type="text" isInvalid={!!errors.slug} {...register("slug")} className="py-2 fw-bold text-primary" id="slug" />
                     <Form.Control.Feedback type="invalid">{errors.slug?.message}</Form.Control.Feedback>
                   </InputGroup>
                 </Form.Group>
@@ -168,7 +177,7 @@ export default function PageForm() {
             <Form.Group className="mb-4" style={{ paddingBottom: '40px' }}>
               <Form.Label className="fw-bold text-dark">محتوى الصفحة</Form.Label>
               <div style={{ direction: 'rtl' }}>
-                {/* @ts-ignore */}
+                {/* @ts-expect-error ReactQuill value prop type mismatch */}
                 <ReactQuill theme="snow" value={editorContent || ""} onChange={(val: string) => setValue("content", val, { shouldValidate: true })} style={{ height: '400px' }} />
               </div>
             </Form.Group>
@@ -177,13 +186,13 @@ export default function PageForm() {
               <Col md={6}>
                 <Form.Group>
                   <Form.Label className="fw-bold text-dark">حالة الظهور</Form.Label>
-                  <Form.Check type="switch" label="نشر الصفحة (متاحة)" {...register("isActive")} className="fw-bold text-success fs-5" />
+                  <Form.Check type="switch" label="نشر الصفحة (متاحة)" {...register("isActive")} className="fw-bold text-success fs-5" id="isActive" />
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group>
                   <Form.Label className="fw-bold text-dark">مستوى الأمان</Form.Label>
-                  <Form.Check type="switch" label="صفحة محمية (تتطلب QR Code)" {...register("isSecure")} className="fw-bold text-danger fs-5" />
+                  <Form.Check type="switch" label="صفحة محمية (تتطلب QR Code)" {...register("isSecure")} className="fw-bold text-danger fs-5" id="isSecure" />
                   <Form.Text className="text-muted small">إذا قمت بتفعيل هذا الخيار، لن تفتح الصفحة إلا بمسح الـ QR.</Form.Text>
                 </Form.Group>
               </Col>

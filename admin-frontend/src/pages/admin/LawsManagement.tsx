@@ -21,7 +21,7 @@ export default function LawsManagement() {
       const response = await axiosInstance.get("/laws"); 
       setLaws(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب القوانين');
     } 
@@ -39,8 +39,7 @@ export default function LawsManagement() {
       setLaws(laws.filter(l => l.id !== itemToDelete));
       setShowDeleteModal(false); setItemToDelete(null);
       toast.success('تم حذف القانون بنجاح', { id: toastId });
-    } catch (error) { 
-      console.error(error); 
+    } catch { 
       toast.error('حدث خطأ أثناء الحذف', { id: toastId });
     } finally { setIsDeleting(false); }
   };

@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -10,7 +21,7 @@ const storageOptions = diskStorage({
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-  }
+  },
 });
 
 @Controller('laws')
@@ -25,7 +36,9 @@ export class LawsController {
       title: body.title,
       content: body.content,
       isActive: body.isActive !== 'false',
-      fileUrl: file ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}` : undefined,
+      fileUrl: file
+        ? `https://hama-chamber-api.onrender.com/uploads/${file.filename}`
+        : undefined,
     };
     return this.lawsService.create(dto);
   }
@@ -38,7 +51,11 @@ export class LawsController {
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file', { storage: storageOptions }))
-  update(@Param('id') id: string, @Body() body: any, @UploadedFile() file: Express.Multer.File) {
+  update(
+    @Param('id') id: string,
+    @Body() body: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     const dto: any = {
       title: body.title,
       content: body.content,

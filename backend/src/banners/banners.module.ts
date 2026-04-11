@@ -6,8 +6,8 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module'; // 👈 اس
 
 @Module({
   imports: [
-    PrismaModule, 
-    CloudinaryModule // 👈 إضافته هنا ليصبح متاحاً للكونترولر والسيرفس
+    PrismaModule,
+    CloudinaryModule, // 👈 إضافته هنا ليصبح متاحاً للكونترولر والسيرفس
   ],
   controllers: [BannersController],
   providers: [BannersService],

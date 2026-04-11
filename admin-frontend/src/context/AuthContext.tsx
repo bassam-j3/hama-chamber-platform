@@ -1,37 +1,26 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axiosInstance from '../api/axiosInstance';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
+import { AuthContext, type User } from './Context';
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  // استرجاع الجلسة عند تحديث الصفحة
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+  const getInitialUser = (): User | null => {
     const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
+    try {
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const getInitialToken = (): string | null => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) {
       axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
     }
-  }, []);
+    return storedToken;
+  };
+
+  const [user, setUser] = useState<User | null>(getInitialUser);
+  const [token, setToken] = useState<string | null>(getInitialToken);
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
@@ -54,12 +43,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

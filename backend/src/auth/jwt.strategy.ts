@@ -8,7 +8,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       // الكائن Error موجود مسبقاً في لغة جافاسكريبت ولا يحتاج لاستيراد
-      throw new Error('CRITICAL: JWT_SECRET environment variable is not defined!');
+      throw new Error(
+        'CRITICAL: JWT_SECRET environment variable is not defined!',
+      );
     }
 
     super({
@@ -19,6 +21,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, email: payload.email, name: payload.name, role: payload.role };
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      name: payload.name,
+      role: payload.role,
+    };
   }
 }

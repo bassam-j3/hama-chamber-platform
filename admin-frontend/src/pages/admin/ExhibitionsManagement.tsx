@@ -21,7 +21,7 @@ export default function ExhibitionsManagement() {
       const response = await axiosInstance.get("/exhibitions"); 
       setData(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب المعارض');
     } 
@@ -39,8 +39,7 @@ export default function ExhibitionsManagement() {
       setData(data.filter(i => i.id !== itemToDelete));
       setShowDeleteModal(false); setItemToDelete(null);
       toast.success('تم حذف المعرض بنجاح', { id: toastId });
-    } catch (error) { 
-      console.error(error); 
+    } catch { 
       toast.error('حدث خطأ أثناء الحذف', { id: toastId });
     } finally { setIsDeleting(false); }
   };

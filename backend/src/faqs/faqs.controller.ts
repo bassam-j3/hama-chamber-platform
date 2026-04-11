@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Put,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { FaqsService } from './faqs.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -12,7 +21,7 @@ export class FaqsController {
     const dto = {
       question: body.question,
       answer: body.answer,
-      isActive: body.isActive !== false && body.isActive !== 'false'
+      isActive: body.isActive !== false && body.isActive !== 'false',
     };
     return this.faqsService.create(dto);
   }
@@ -28,7 +37,7 @@ export class FaqsController {
     const dto = {
       question: body.question,
       answer: body.answer,
-      isActive: body.isActive !== false && body.isActive !== 'false'
+      isActive: body.isActive !== false && body.isActive !== 'false',
     };
     return this.faqsService.update(id, dto);
   }

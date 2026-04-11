@@ -57,7 +57,7 @@ export default function PublicLayout() {
     if (!location.hash) {
       window.scrollTo(0, 0);
     }
-  }, [location.pathname]);
+  }, [location.pathname, location.hash]);
 
   // ==========================================
   // 👇 تم استعادة الـ Scroll Spy لكل الأقسام 👇

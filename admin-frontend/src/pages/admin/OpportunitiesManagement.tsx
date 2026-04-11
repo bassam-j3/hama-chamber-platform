@@ -21,7 +21,7 @@ export default function OpportunitiesManagement() {
       const response = await axiosInstance.get("/opportunities"); 
       setData(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب الفرص الاستثمارية');
     } 
@@ -39,8 +39,7 @@ export default function OpportunitiesManagement() {
       setData(data.filter(i => i.id !== itemToDelete));
       setShowDeleteModal(false); setItemToDelete(null);
       toast.success('تم حذف الفرصة بنجاح', { id: toastId });
-    } catch (error) { 
-      console.error(error); 
+    } catch { 
       toast.error('حدث خطأ أثناء الحذف', { id: toastId });
     } finally { setIsDeleting(false); }
   };

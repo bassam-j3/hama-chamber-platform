@@ -21,5 +21,5 @@ export class CreatePageDto {
   // 👈 أضف هذا الجزء الخاص بحقل الأمان
   @IsBoolean()
   @IsOptional()
-  isSecure?: boolean; 
+  isSecure?: boolean;
 }

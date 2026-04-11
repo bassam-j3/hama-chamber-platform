@@ -6,7 +6,11 @@ import { v2 as cloudinary } from 'cloudinary';
 export class NewsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: any, mainImage?: Express.Multer.File, galleryImages?: Express.Multer.File[]) {
+  async create(
+    data: any,
+    mainImage?: Express.Multer.File,
+    galleryImages?: Express.Multer.File[],
+  ) {
     let imageUrl = data.imageUrl || null;
     const images: string[] = [];
 
@@ -35,19 +39,22 @@ export class NewsService {
 
   async findAll(query?: { search?: string; status?: string }) {
     const { search, status } = query || {};
-    
+
     return (this.prisma.news as any).findMany({
       where: {
         // الفلترة الأساسية: لا نعرض المحذوف ناعماً إلا إذا طلبنا ذلك (افتراضياً isActive: true)
-        isActive: status === 'inactive' ? false : status === 'active' ? true : true,
-        AND: search ? [
-          {
-            OR: [
-              { title: { contains: search, mode: 'insensitive' } },
-              { content: { contains: search, mode: 'insensitive' } },
-            ],
-          },
-        ] : [],
+        isActive:
+          status === 'inactive' ? false : status === 'active' ? true : true,
+        AND: search
+          ? [
+              {
+                OR: [
+                  { title: { contains: search, mode: 'insensitive' } },
+                  { content: { contains: search, mode: 'insensitive' } },
+                ],
+              },
+            ]
+          : [],
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -61,11 +68,18 @@ export class NewsService {
     return news;
   }
 
-  async update(id: string, data: any, mainImage?: Express.Multer.File, galleryImages?: Express.Multer.File[]) {
+  async update(
+    id: string,
+    data: any,
+    mainImage?: Express.Multer.File,
+    galleryImages?: Express.Multer.File[],
+  ) {
     const existing = await this.findOne(id);
 
     let imageUrl = existing.imageUrl;
-    let images = data.remainingImages ? JSON.parse(data.remainingImages) : [...existing.images];
+    const images = data.remainingImages
+      ? JSON.parse(data.remainingImages)
+      : [...existing.images];
 
     if (mainImage) {
       const upload = await this.uploadToCloudinary(mainImage);
@@ -101,10 +115,12 @@ export class NewsService {
 
   private async uploadToCloudinary(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({ folder: 'hama-chamber/news' }, (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }).end(file.buffer);
+      cloudinary.uploader
+        .upload_stream({ folder: 'hama-chamber/news' }, (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        })
+        .end(file.buffer);
     });
   }
 }

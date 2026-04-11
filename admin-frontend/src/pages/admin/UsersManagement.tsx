@@ -21,7 +21,7 @@ export default function UsersManagement() {
       const response = await axiosInstance.get("/users"); 
       setData(response.data); 
     } 
-    catch (err: any) { 
+    catch { 
       setError("فشل في جلب البيانات من الخادم، يرجى المحاولة مرة أخرى."); 
       toast.error('فشل في جلب المستخدمين');
     } 
@@ -39,8 +39,7 @@ export default function UsersManagement() {
       setData(data.filter(i => i.id !== itemToDelete));
       setShowDeleteModal(false); setItemToDelete(null);
       toast.success('تم إيقاف المستخدم بنجاح', { id: toastId });
-    } catch (error) { 
-      console.error(error); 
+    } catch { 
       toast.error('حدث خطأ أثناء الإيقاف', { id: toastId });
     } finally { setIsDeleting(false); }
   };

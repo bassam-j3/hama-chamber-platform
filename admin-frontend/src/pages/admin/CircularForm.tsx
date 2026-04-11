@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -17,6 +17,14 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+interface Circular {
+  id: string;
+  title: string;
+  content: string;
+  category?: string;
+  isActive: boolean;
+}
+
 export default function CircularForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -31,23 +39,29 @@ export default function CircularForm() {
 
   const editorContent = watch("content");
 
+  const populateForm = useCallback((data: Circular) => {
+    setValue("title", data.title); 
+    setValue("content", data.content);
+    setValue("category", data.category || ""); 
+    setValue("isActive", data.isActive);
+  }, [setValue]);
+
   useEffect(() => {
     if (id) {
-      if (location.state?.item) populateForm(location.state.item);
-      else {
+      const stateItem = location.state?.item as Circular | undefined;
+      if (stateItem) {
+        populateForm(stateItem);
+      } else {
         setIsLoading(true);
         axiosInstance.get("/circulars").then(res => {
-          const item = res.data.find((p: any) => p.id === id);
+          const item = res.data.find((p: Circular) => p.id === id);
           if (item) populateForm(item);
+        }).catch(() => {
+          toast.error("فشل في تحميل بيانات التعميم");
         }).finally(() => setIsLoading(false));
       }
     }
-  }, [id]);
-
-  const populateForm = (data: any) => {
-    setValue("title", data.title); setValue("content", data.content);
-    setValue("category", data.category || ""); setValue("isActive", data.isActive);
-  };
+  }, [id, location.state, populateForm]);
 
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -65,11 +79,14 @@ export default function CircularForm() {
       
       toast.success('تم الحفظ بنجاح', { id: toastId });
       navigate('/admin/circulars');
-    } catch (error) { toast.error('فشل الحفظ', { id: toastId }); } 
-    finally { setIsSubmitting(false); }
+    } catch { 
+      toast.error('فشل الحفظ', { id: toastId }); 
+    } finally { 
+      setIsSubmitting(false); 
+    }
   };
 
-  if (isLoading) return <div className="text-center p-5"><Spinner /></div>;
+  if (isLoading) return <div className="text-center p-5"><Spinner animation="border" /></div>;
 
   return (
     <Container fluid className="max-w-75 mb-5">
@@ -82,7 +99,7 @@ export default function CircularForm() {
           <Form onSubmit={handleSubmit(onSubmit)}>
             <Form.Group className="mb-3">
               <Form.Label>عنوان التعميم</Form.Label>
-              <Form.Control isInvalid={!!errors.title} {...register("title")} />
+              <Form.Control isInvalid={!!errors.title} {...register("title")} id="title" />
             </Form.Group>
             <Form.Group className="mb-4" style={{ height: '250px', paddingBottom: '50px' }}>
               <Form.Label>النص والتفاصيل</Form.Label>
@@ -90,9 +107,12 @@ export default function CircularForm() {
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>مرفق التعميم (صورة - اختياري)</Form.Label>
-              <Form.Control type="file" accept="image/*" onChange={(e: any) => setSelectedFile(e.target.files[0])} />
+              <Form.Control type="file" accept="image/*" onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const file = e.target.files?.[0];
+                if (file) setSelectedFile(file);
+              }} />
             </Form.Group>
-            <Form.Check type="switch" label="نشر التعميم" {...register("isActive")} className="mb-4 fw-bold" />
+            <Form.Check type="switch" label="نشر التعميم" {...register("isActive")} className="mb-4 fw-bold" id="isActive" />
             <Button variant="primary" type="submit" disabled={isSubmitting} className="w-100">حفظ التعميم</Button>
           </Form>
         </Card.Body>

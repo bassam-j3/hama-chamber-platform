@@ -21,17 +21,19 @@ export class PagesService {
     const page = await this.prisma.page.findUnique({
       where: { slug },
     });
-    
+
     if (!page || !page.isActive) {
-        throw new NotFoundException(`Page with slug '${slug}' not found or inactive`);
+      throw new NotFoundException(
+        `Page with slug '${slug}' not found or inactive`,
+      );
     }
     return page;
   }
 
   update(id: string, data: any) {
-    return this.prisma.page.update({ 
-      where: { id }, 
-      data 
+    return this.prisma.page.update({
+      where: { id },
+      data,
     });
   }
 

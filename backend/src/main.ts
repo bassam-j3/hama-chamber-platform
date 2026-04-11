@@ -18,9 +18,13 @@ async function bootstrap() {
   const missingVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
 
   if (missingVars.length > 0) {
-    logger.error(`❌ CRITICAL: Missing required environment variables: ${missingVars.join(', ')}`);
-    logger.error('🛑 The application will refuse to boot until these are provided.');
-    process.exit(1); 
+    logger.error(
+      `❌ CRITICAL: Missing required environment variables: ${missingVars.join(', ')}`,
+    );
+    logger.error(
+      '🛑 The application will refuse to boot until these are provided.',
+    );
+    process.exit(1);
   }
 
   const app = await NestFactory.create(AppModule);
@@ -29,7 +33,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.use(helmet());
-  
+
   const allowedOrigins = process.env.FRONTEND_URL!.split(',');
 
   app.enableCors({
@@ -51,7 +55,7 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  
+
   logger.log(`🚀 Application successfully booted and running on port: ${port}`);
 }
 bootstrap();

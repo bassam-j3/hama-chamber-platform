@@ -13,7 +13,7 @@ export default function PublicFaqs() {
     try {
       const response = await axiosInstance.get('/faqs');
       setData(response.data.filter((i: Faq) => i.isActive));
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل الأسئلة الشائعة.');
     } finally { setLoading(false); }
   };

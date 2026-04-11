@@ -15,7 +15,7 @@ export default function PublicLaws() {
     try {
       const response = await axiosInstance.get('/laws');
       setData(response.data.filter((i: Law) => i.isActive));
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل القوانين والتشريعات.');
     } finally { setLoading(false); }
   };

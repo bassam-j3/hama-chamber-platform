@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Spinner, Button, Modal, Form, Dropdown, DropdownButton } from 'react-bootstrap';
 import axiosInstance from '../../api/axiosInstance';
+import toast from 'react-hot-toast';
 
 interface EmailListItem {
   id: string;
@@ -43,20 +44,21 @@ export default function Inbox() {
   const [composeAttachments, setComposeAttachments] = useState<FileList | null>(null);
 
   // جلب قائمة الإيميلات
-  const fetchEmails = async (folder = currentFolder) => {
+  const fetchEmails = useCallback(async (folder = currentFolder) => {
     setLoadingList(true);
     try {
       const response = await axiosInstance.get(`/emails/list?folder=${folder}&limit=20`);
       setEmails(response.data);
       setError('');
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل الرسائل. يرجى التأكد من الاتصال.');
+      toast.error('فشل في جلب الرسائل');
     } finally {
       setLoadingList(false);
     }
-  };
+  }, [currentFolder]);
 
-  useEffect(() => { fetchEmails(); }, []);
+  useEffect(() => { fetchEmails(); }, [fetchEmails]);
 
   // تغيير المجلد
   const handleFolderChange = (folder: string) => {
@@ -80,8 +82,9 @@ export default function Inbox() {
         await axiosInstance.put(`/emails/inbox/${emailItem.id}/read`);
         setEmails(prev => prev.map(e => e.id === emailItem.id ? { ...e, isUnread: false } : e));
       }
-    } catch (err) {
+    } catch {
       setError('حدث خطأ أثناء جلب تفاصيل الرسالة.');
+      toast.error('فشل في تحميل تفاصيل الرسالة');
       setShowReadModal(false);
     } finally {
       setLoadingDetails(false);
@@ -92,6 +95,7 @@ export default function Inbox() {
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
+    const toastId = toast.loading('جاري إرسال الرسالة...');
     try {
       const formData = new FormData();
       formData.append('to', composeTo);
@@ -108,9 +112,9 @@ export default function Inbox() {
       
       setShowComposeModal(false);
       setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null);
-      alert('تم إرسال الرسالة بنجاح! 🚀');
-    } catch (err) {
-      alert('حدث خطأ أثناء إرسال الرسالة، تأكد من الإعدادات.');
+      toast.success('تم إرسال الرسالة بنجاح! 🚀', { id: toastId });
+    } catch {
+      toast.error('حدث خطأ أثناء إرسال الرسالة، تأكد من الإعدادات.', { id: toastId });
     } finally {
       setSending(false);
     }
@@ -158,11 +162,11 @@ export default function Inbox() {
             <Dropdown.Item eventKey="SPAM" className="d-flex align-items-center gap-2 text-danger"><span className="material-symbols-outlined fs-6">report</span>الرسائل المزعجة (Spam)</Dropdown.Item>
           </DropdownButton>
 
-          <Button variant="primary" onClick={() => { setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null); setShowComposeModal(true); }} className="fw-bold px-4 d-flex align-items-center gap-2 shadow-sm">
+          <Button variant="primary" onClick={() => { setComposeTo(''); setComposeSubject(''); setComposeBody(''); setComposeAttachments(null); setShowComposeModal(true); }} className="fw-bold px-4 d-flex align-items-center gap-2 shadow-sm rounded-pill py-2">
             <span className="material-symbols-outlined fs-5">edit_square</span>رسالة جديدة
           </Button>
           
-          <Button variant="light" onClick={() => fetchEmails()} disabled={loadingList} className="d-flex align-items-center justify-content-center shadow-sm border-0 hover-bg-primary hover-text-white transition-all text-primary">
+          <Button variant="light" onClick={() => fetchEmails()} disabled={loadingList} className="d-flex align-items-center justify-content-center shadow-sm border-0 hover-bg-primary hover-text-white transition-all text-primary rounded-circle" style={{ width: '40px', height: '40px' }}>
             <span className={`material-symbols-outlined ${loadingList ? 'animate-spin' : ''}`}>sync</span>
           </Button>
         </div>
@@ -254,7 +258,7 @@ export default function Inbox() {
         </Modal.Body>
         <Modal.Footer className="border-top-0 pt-0">
           <Button variant="secondary" onClick={() => setShowReadModal(false)}>إغلاق</Button>
-          <Button variant="outline-primary" className="d-flex align-items-center gap-1" onClick={handleReply}><span className="material-symbols-outlined fs-6">reply</span> رد</Button>
+          <Button variant="outline-primary" className="d-flex align-items-center gap-1 rounded-pill px-3" onClick={handleReply}><span className="material-symbols-outlined fs-6">reply</span> رد</Button>
         </Modal.Footer>
       </Modal>
 
@@ -268,25 +272,25 @@ export default function Inbox() {
             <Card className="border-0 shadow-sm p-4 rounded-4">
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold text-primary small">إلى</Form.Label>
-                <Form.Control type="email" placeholder="example@domain.com" required value={composeTo} onChange={e => setComposeTo(e.target.value)} className="rounded-3 bg-light border-0 py-2" />
+                <Form.Control type="email" placeholder="example@domain.com" required value={composeTo} onChange={e => setComposeTo(e.target.value)} className="rounded-3 bg-light border-0 py-2 shadow-none" />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold text-primary small">الموضوع</Form.Label>
-                <Form.Control type="text" placeholder="عنوان الرسالة..." required value={composeSubject} onChange={e => setComposeSubject(e.target.value)} className="rounded-3 bg-light border-0 py-2" />
+                <Form.Control type="text" placeholder="عنوان الرسالة..." required value={composeSubject} onChange={e => setComposeSubject(e.target.value)} className="rounded-3 bg-light border-0 py-2 shadow-none" />
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold text-primary small">الرسالة</Form.Label>
-                <Form.Control as="textarea" rows={8} placeholder="اكتب رسالتك هنا..." required value={composeBody} onChange={e => setComposeBody(e.target.value)} className="rounded-3 bg-light border-0 py-2 custom-scrollbar" />
+                <Form.Control as="textarea" rows={8} placeholder="اكتب رسالتك هنا..." required value={composeBody} onChange={e => setComposeBody(e.target.value)} className="rounded-3 bg-light border-0 py-2 custom-scrollbar shadow-none" />
               </Form.Group>
               <Form.Group>
                 <Form.Label className="fw-bold text-primary small d-flex align-items-center gap-1"><span className="material-symbols-outlined fs-6">attach_file</span> إرفاق ملفات</Form.Label>
-                <Form.Control type="file" multiple onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComposeAttachments(e.target.files)} className="rounded-3 bg-light border-0" />
+                <Form.Control type="file" multiple onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComposeAttachments(e.target.files)} className="rounded-3 bg-light border-0 shadow-none" />
               </Form.Group>
             </Card>
           </Modal.Body>
           <Modal.Footer className="bg-light border-top-0 pt-0">
-            <Button variant="secondary" className="rounded-3 px-4" onClick={() => setShowComposeModal(false)} disabled={sending}>إلغاء</Button>
-            <Button variant="primary" type="submit" className="rounded-3 px-4 d-flex align-items-center gap-2 shadow-sm" disabled={sending}>
+            <Button variant="secondary" className="rounded-pill px-4" onClick={() => setShowComposeModal(false)} disabled={sending}>إلغاء</Button>
+            <Button variant="primary" type="submit" className="rounded-pill px-4 d-flex align-items-center gap-2 shadow-sm" disabled={sending}>
               {sending ? <Spinner animation="border" size="sm" /> : <span className="material-symbols-outlined fs-6">send</span>}
               {sending ? 'جاري الإرسال...' : 'إرسال الرسالة'}
             </Button>

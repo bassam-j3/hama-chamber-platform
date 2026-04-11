@@ -4,7 +4,10 @@ import * as streamifier from 'streamifier';
 
 @Injectable()
 export class CloudinaryService {
-  uploadImage(file: Express.Multer.File, folderName: string = 'hama-chamber'): Promise<any> {
+  uploadImage(
+    file: Express.Multer.File,
+    folderName: string = 'hama-chamber',
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: folderName },

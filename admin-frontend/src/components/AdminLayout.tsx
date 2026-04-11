@@ -1,7 +1,7 @@
 // src/components/AdminLayout.tsx
 import { useState, useEffect } from 'react';
 import { Outlet, Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/useAuth'; 
 import logoImg from '../../hamachamberlogo.svg';
 
 export default function AdminLayout() {

@@ -40,7 +40,7 @@ export class BoardMembersService {
   async update(id: string, data: any, file?: Express.Multer.File) {
     const existing = await this.findOne(id);
     let imageUrl = existing.imageUrl;
-    
+
     if (file) {
       const upload = await this.uploadToCloudinary(file);
       imageUrl = upload.secure_url;
@@ -67,10 +67,15 @@ export class BoardMembersService {
 
   private async uploadToCloudinary(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload_stream({ folder: 'hama-chamber/board-members' }, (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }).end(file.buffer);
+      cloudinary.uploader
+        .upload_stream(
+          { folder: 'hama-chamber/board-members' },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        )
+        .end(file.buffer);
     });
   }
 }

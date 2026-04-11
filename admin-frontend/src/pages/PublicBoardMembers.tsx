@@ -14,7 +14,7 @@ export default function PublicBoardMembers() {
     try {
       const response = await axiosInstance.get('/board-members');
       setData(response.data.filter((i: BoardMember) => i.isActive));
-    } catch (err) {
+    } catch {
       setError('تعذر تحميل بيانات أعضاء المجلس.');
     } finally { setLoading(false); }
   };

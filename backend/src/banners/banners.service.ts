@@ -17,9 +17,9 @@ export class BannersService {
   }
 
   update(id: string, data: any) {
-    return this.prisma.banner.update({ 
-      where: { id }, 
-      data 
+    return this.prisma.banner.update({
+      where: { id },
+      data,
     });
   }
 

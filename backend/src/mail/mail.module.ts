@@ -19,7 +19,7 @@ import { ConfigService, ConfigModule } from '@nestjs/config';
           },
           tls: {
             rejectUnauthorized: false,
-          }
+          },
         },
         defaults: {
           from: `"غرفة تجارة حماة" <${config.get('SMTP_USER')}>`,

@@ -8,7 +8,7 @@ export class CircularsService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreateCircularDto) {
-    return (this.prisma.circular as any).create({
+    return this.prisma.circular.create({
       data: {
         ...data,
         isActive: data.isActive ?? true,
@@ -17,14 +17,14 @@ export class CircularsService {
   }
 
   async findAll() {
-    return (this.prisma.circular as any).findMany({
+    return this.prisma.circular.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string) {
-    const item = await (this.prisma.circular as any).findFirst({
+    const item = await this.prisma.circular.findFirst({
       where: { id, isActive: true },
     });
     if (!item) throw new NotFoundException('التعميم غير موجود');
@@ -33,7 +33,7 @@ export class CircularsService {
 
   async update(id: string, data: UpdateCircularDto) {
     await this.findOne(id);
-    return (this.prisma.circular as any).update({
+    return this.prisma.circular.update({
       where: { id },
       data,
     });
@@ -41,7 +41,7 @@ export class CircularsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    return (this.prisma.circular as any).update({
+    return this.prisma.circular.update({
       where: { id },
       data: { isActive: false },
     });

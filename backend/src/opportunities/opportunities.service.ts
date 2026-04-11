@@ -8,7 +8,7 @@ export class OpportunitiesService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreateOpportunityDto) {
-    return (this.prisma.opportunity as any).create({
+    return this.prisma.opportunity.create({
       data: {
         ...data,
         isActive: data.isActive ?? true,
@@ -17,14 +17,14 @@ export class OpportunitiesService {
   }
 
   async findAll() {
-    return (this.prisma.opportunity as any).findMany({
+    return this.prisma.opportunity.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string) {
-    const item = await (this.prisma.opportunity as any).findFirst({
+    const item = await this.prisma.opportunity.findFirst({
       where: { id, isActive: true },
     });
     if (!item) throw new NotFoundException('الفرصة غير موجودة');
@@ -33,7 +33,7 @@ export class OpportunitiesService {
 
   async update(id: string, data: UpdateOpportunityDto) {
     await this.findOne(id);
-    return (this.prisma.opportunity as any).update({
+    return this.prisma.opportunity.update({
       where: { id },
       data,
     });
@@ -41,7 +41,7 @@ export class OpportunitiesService {
 
   async remove(id: string) {
     await this.findOne(id);
-    return (this.prisma.opportunity as any).update({
+    return this.prisma.opportunity.update({
       where: { id },
       data: { isActive: false },
     });

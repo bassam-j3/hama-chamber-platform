@@ -72,7 +72,7 @@ export default function UsersManagement() {
               {/* Empty State */}
               {!isLoading && !error && data.length === 0 && (
                 <div className="text-center py-5">
-                  <img src="/vite.svg" alt="No Data" style={{ width: '100px', opacity: 0.5 }} className="mb-4" />
+                  <span className="material-symbols-outlined display-1 text-muted opacity-25 mb-4">group_off</span>
                   <h4 className="text-muted fw-bold mb-2">لا يوجد مستخدمين حالياً</h4>
                   <p className="text-muted mb-4">انقر على زر الإضافة لإدراج مستخدم جديد بصلاحيات محددة.</p>
                   <Button variant="primary" onClick={() => navigate('/admin/users/create')} className="px-4 fw-bold rounded-pill">

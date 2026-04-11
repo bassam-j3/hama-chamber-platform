@@ -8,7 +8,7 @@ export class ExhibitionsService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: CreateExhibitionDto) {
-    return (this.prisma.exhibition as any).create({
+    return this.prisma.exhibition.create({
       data: {
         ...data,
         isActive: data.isActive ?? true,
@@ -17,14 +17,14 @@ export class ExhibitionsService {
   }
 
   async findAll() {
-    return (this.prisma.exhibition as any).findMany({
+    return this.prisma.exhibition.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async findOne(id: string) {
-    const item = await (this.prisma.exhibition as any).findFirst({
+    const item = await this.prisma.exhibition.findFirst({
       where: { id, isActive: true },
     });
     if (!item) throw new NotFoundException('المعرض غير موجود');
@@ -33,7 +33,7 @@ export class ExhibitionsService {
 
   async update(id: string, data: UpdateExhibitionDto) {
     await this.findOne(id);
-    return (this.prisma.exhibition as any).update({
+    return this.prisma.exhibition.update({
       where: { id },
       data,
     });
@@ -41,7 +41,7 @@ export class ExhibitionsService {
 
   async remove(id: string) {
     await this.findOne(id);
-    return (this.prisma.exhibition as any).update({
+    return this.prisma.exhibition.update({
       where: { id },
       data: { isActive: false },
     });

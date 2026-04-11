@@ -15,8 +15,8 @@ export class AuthController {
     if (data && data.access_token) {
       res.cookie('token', data.access_token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true, // MUST be true for cross-site cookies
+        sameSite: 'none', // MUST be 'none' for cross-site cookies
         maxAge: 24 * 60 * 60 * 1000, // 1 day
       });
     }
@@ -25,7 +25,11 @@ export class AuthController {
 
   @Post('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('token');
+    res.clearCookie('token', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    });
     return { message: 'Logged out successfully' };
   }
 

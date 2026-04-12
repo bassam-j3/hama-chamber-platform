@@ -9,12 +9,14 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { OpportunitiesService } from './opportunities.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('opportunities')
 export class OpportunitiesController {
@@ -47,8 +49,8 @@ export class OpportunitiesController {
   }
 
   @Get()
-  findAll() {
-    return this.opportunitiesService.findAll();
+  findAll(@Query() pagination?: PaginationDto) {
+    return this.opportunitiesService.findAll(pagination);
   }
 
   @Put(':id')

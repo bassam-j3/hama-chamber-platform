@@ -8,16 +8,14 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
-  UploadedFile,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ProjectsService } from './projects.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('projects')
 export class ProjectsController {
@@ -43,8 +41,8 @@ export class ProjectsController {
   }
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(@Query() pagination?: PaginationDto) {
+    return this.projectsService.findAll(pagination);
   }
 
   @Put(':id')

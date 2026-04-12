@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { v2 as cloudinary } from 'cloudinary';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
 export class NewsService {
@@ -37,27 +38,50 @@ export class NewsService {
     });
   }
 
-  async findAll(query?: { search?: string; status?: string }) {
+  async findAll(query?: {
+    search?: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResult<any>> {
     const { search, status } = query || {};
+    const page = Number(query?.page) || 1;
+    const limit = Number(query?.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    return (this.prisma.news as any).findMany({
-      where: {
-        // الفلترة الأساسية: لا نعرض المحذوف ناعماً إلا إذا طلبنا ذلك (افتراضياً isActive: true)
-        isActive:
-          status === 'inactive' ? false : status === 'active' ? true : true,
-        AND: search
-          ? [
-              {
-                OR: [
-                  { title: { contains: search, mode: 'insensitive' } },
-                  { content: { contains: search, mode: 'insensitive' } },
-                ],
-              },
-            ]
-          : [],
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+    const where = {
+      // الفلترة الأساسية: لا نعرض المحذوف ناعماً إلا إذا طلبنا ذلك (افتراضياً isActive: true)
+      isActive:
+        status === 'inactive' ? false : status === 'active' ? true : true,
+      AND: search
+        ? [
+            {
+              OR: [
+                { title: { contains: search, mode: 'insensitive' } },
+                { content: { contains: search, mode: 'insensitive' } },
+              ],
+            },
+          ]
+        : [],
+    };
+
+    const [data, total] = await Promise.all([
+      (this.prisma.news as any).findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      (this.prisma.news as any).count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string) {

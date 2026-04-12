@@ -14,14 +14,19 @@ import {
 import { NewsService } from './news.service';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Controller('news')
 export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
   @Get()
-  findAll(@Query('search') search?: string, @Query('status') status?: string) {
-    return this.newsService.findAll({ search, status });
+  findAll(
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query() pagination?: PaginationDto,
+  ) {
+    return this.newsService.findAll({ search, status, ...pagination });
   }
 
   @Get(':id')

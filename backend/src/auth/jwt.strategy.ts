@@ -13,19 +13,12 @@ interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
-    const secret = process.env.JWT_SECRET;
-    if (!secret) {
-      throw new Error(
-        'CRITICAL: JWT_SECRET environment variable is not defined!',
-      );
-    }
-
     super({
       jwtFromRequest: (req: Request): string | null => {
         return (req?.cookies?.['token'] as string | undefined) || null;
       },
       ignoreExpiration: false,
-      secretOrKey: secret,
+      secretOrKey: process.env.JWT_SECRET || '',
     });
   }
 

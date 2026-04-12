@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { v2 as cloudinary } from 'cloudinary';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -88,12 +89,9 @@ export class ProjectsService {
   }
 
   // ✅ التعديل المطلوب لـ Phase 1: Soft Delete & Active Only & Pagination
-  async findAll(query?: {
-    page?: number;
-    limit?: number;
-  }): Promise<PaginatedResult<any>> {
-    const page = Number(query?.page) || 1;
-    const limit = Number(query?.limit) || 10;
+  async findAll(pagination?: PaginationDto): Promise<PaginatedResult<any>> {
+    const page = pagination?.page ? Number(pagination.page) : 1;
+    const limit = pagination?.limit ? Number(pagination.limit) : 10;
     const skip = (page - 1) * limit;
 
     const where = { isActive: true }; // جلب المشاريع النشطة فقط

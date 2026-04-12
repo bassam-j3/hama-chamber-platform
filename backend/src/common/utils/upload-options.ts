@@ -10,7 +10,12 @@ export const uploadOptions = {
     if (file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
       cb(null, true);
     } else {
-      cb(new BadRequestException('عذراً، يسمح فقط برفع الصور (jpg, jpeg, png, gif, webp)'), false);
+      cb(
+        new BadRequestException(
+          'عذراً، يسمح فقط برفع الصور (jpg, jpeg, png, gif, webp)',
+        ),
+        false,
+      );
     }
   },
 };

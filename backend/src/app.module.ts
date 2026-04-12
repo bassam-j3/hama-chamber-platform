@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config'; // 👈 استيراد الإعدادات
+import { ScheduleModule } from '@nestjs/schedule'; // 👈 استيراد موديول الجدولة
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -29,6 +30,7 @@ import { EmailsModule } from './emails/emails.module'; // 👈 استيراد م
       ttl: 60000,
       limit: 100,
     }]),
+    ScheduleModule.forRoot(), // 👈 تفعيل الجدولة
     PrismaModule,
     CloudinaryModule,
     AuthModule,

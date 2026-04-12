@@ -34,11 +34,12 @@ async function bootstrap() {
   // Global Middleware Setup
   app.use(cookieParser()); // Moved to top
   app.use(helmet());
-  
+
   app.setGlobalPrefix('api/v1');
 
   // Advanced Logging Middleware (Morgan)
-  const morganFormat = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
+  const morganFormat =
+    process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
   app.use(morgan(morganFormat));
 
   // Build the list of allowed origins from environment and explicit project production URL
@@ -46,7 +47,7 @@ async function bootstrap() {
     ...(process.env.FRONTEND_URL?.split(',') || []),
     'https://hama-chamber.web.app',
     'https://hama-chamber-admin.onrender.com', // Final Render domain check
-  ].filter(origin => !!origin);
+  ].filter((origin) => !!origin);
 
   app.enableCors({
     origin: allowedOrigins,

@@ -26,10 +26,12 @@ import { EmailsModule } from './emails/emails.module'; // 👈 استيراد م
     // تهيئة موديول الإعدادات وجعله عالمياً ليشمل كل ملفات المشروع
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register({ isGlobal: true }), // Registered for Item 3.1
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 100,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     ScheduleModule.forRoot(), // 👈 تفعيل الجدولة
     PrismaModule,
     CloudinaryModule,

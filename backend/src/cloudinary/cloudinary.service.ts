@@ -70,7 +70,13 @@ export class CloudinaryService {
     let deletedCount = 0;
 
     const processRecords = async (
-      modelName: 'news' | 'project' | 'exhibition' | 'opportunity' | 'circular' | 'boardMember',
+      modelName:
+        | 'news'
+        | 'project'
+        | 'exhibition'
+        | 'opportunity'
+        | 'circular'
+        | 'boardMember',
       records: CleanableRecord[],
     ) => {
       for (const record of records) {
@@ -79,13 +85,13 @@ export class CloudinaryService {
           if (publicId) {
             try {
               await this.deleteImage(publicId);
-              
+
               // @ts-expect-error Prisma dynamic model access
               await this.prisma[modelName].update({
                 where: { id: record.id },
                 data: { imageUrl: null },
               });
-              
+
               deletedCount++;
               this.logger.log(
                 `Deleted Cloudinary asset ${publicId} for ${modelName} ID: ${record.id}`,

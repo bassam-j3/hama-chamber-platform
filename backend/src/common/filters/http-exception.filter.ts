@@ -34,7 +34,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : (exceptionResponse as any).message || exceptionResponse;
 
     const isDevelopment = process.env.NODE_ENV !== 'production';
-    
+
     // Log detailed error
     const logData = {
       method: request.method,
@@ -42,7 +42,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       status,
       error: errorMessage,
       timestamp: new Date().toISOString(),
-      stack: isDevelopment && exception instanceof Error ? exception.stack : undefined,
+      stack:
+        isDevelopment && exception instanceof Error
+          ? exception.stack
+          : undefined,
     };
 
     // Redact sensitive body data if needed, but we avoid logging body here for security
@@ -57,7 +60,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request.url,
       // Only include stack trace in development
-      stack: isDevelopment && exception instanceof Error ? exception.stack : undefined,
+      stack:
+        isDevelopment && exception instanceof Error
+          ? exception.stack
+          : undefined,
     });
   }
 }

@@ -9,12 +9,14 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { LawsService } from './laws.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { PaginationDto } from '../common/dto/pagination.dto';
 
 const storageOptions = diskStorage({
   destination: './uploads',
@@ -44,8 +46,8 @@ export class LawsController {
   }
 
   @Get()
-  findAll() {
-    return this.lawsService.findAll();
+  findAll(@Query() pagination?: PaginationDto) {
+    return this.lawsService.findAll(pagination);
   }
 
   @Put(':id')

@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateLawDto } from './dto/create-law.dto';
 import { UpdateLawDto } from './dto/update-law.dto';
+import { PaginationDto } from '../common/dto/pagination.dto';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
 export class LawsService {
@@ -13,12 +15,30 @@ export class LawsService {
     });
   }
 
-  async findAll() {
-    // LAW 6: Filter only active items to prevent showing deleted laws
-    return this.prisma.law.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(pagination?: PaginationDto): Promise<PaginatedResult<any>> {
+    const page = pagination?.page ? Number(pagination.page) : 1;
+    const limit = pagination?.limit ? Number(pagination.limit) : 10;
+    const skip = (page - 1) * limit;
+
+    const where = { isActive: true }; // LAW 6: Filter only active items to prevent showing deleted laws
+
+    const [data, total] = await Promise.all([
+      this.prisma.law.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.law.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string) {

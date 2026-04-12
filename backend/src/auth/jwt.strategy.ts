@@ -1,7 +1,14 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
+
+interface JwtPayload {
+  sub: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,19 +21,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     super({
-      jwtFromRequest: (req: Request) => {
-        let token = null;
-        if (req && req.cookies) {
-          token = req.cookies['token'];
-        }
-        return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+      jwtFromRequest: (req: Request): string | null => {
+        return (req?.cookies?.['token'] as string | undefined) || null;
       },
       ignoreExpiration: false,
       secretOrKey: secret,
     });
   }
 
-  async validate(payload: any) {
+  validate(payload: JwtPayload) {
     return {
       userId: payload.sub,
       email: payload.email,

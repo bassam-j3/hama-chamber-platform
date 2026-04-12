@@ -39,7 +39,6 @@ describe('UsersService', () => {
 
       mockPrismaService.user.findMany.mockResolvedValue(users);
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await service.findAll();
 
       expect(mockPrismaService.user.findMany).toHaveBeenCalledWith(
